@@ -1,0 +1,5 @@
+puno_distritos.geojson se derivó de peru_distrital_simple.geojson del repositorio
+https://github.com/juaneladio/peru-geojson (base INEI), distribuido bajo la
+Mozilla Public License 2.0 (https://www.mozilla.org/MPL/2.0/). Este archivo
+derivado se distribuye bajo la misma licencia MPL 2.0; el resto del código de
+ÑAWPAQ PACHA está bajo licencia MIT.

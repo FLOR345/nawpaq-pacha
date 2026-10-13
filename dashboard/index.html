@@ -1,0 +1,651 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Ñawpaq Pacha</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: barra lateral verde → encabezado (título, zona, fecha) → vistas:
+   Inicio (mapa + alerta + zonas + condiciones) · Mapa · Alertas · Reportes · Configuración */
+:root{
+  --bg:#eef1ee; --panel:#ffffff; --ink:#17231d; --muted:#5d6b63; --line:#dbe2dc;
+  --side:#123d2c; --side-2:#0c2c20; --side-ink:#e3efe7; --side-muted:#9fbcab; --side-active:#2c6b4c;
+  --accent:#1f6b47; --accent-soft:#e3f0e8;
+  --bajo:#3aa655; --medio:#e8c62e; --alto:#ee7d1f; --muyalto:#d42b2b;
+  --alert:#c62828; --alert-soft:#fdecec;
+  --font-display:"Bricolage Grotesque","Segoe UI",system-ui,sans-serif;
+  --font-body:"IBM Plex Sans","Segoe UI",system-ui,sans-serif;
+  --font-data:"IBM Plex Mono",ui-monospace,Consolas,monospace;
+  color-scheme:light;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0f1512; --panel:#18211c; --ink:#e6eee8; --muted:#9db0a5; --line:#2a3830;
+  --side:#0b2419; --side-2:#071a12; --accent:#5fc28f; --accent-soft:#1c3328;
+  --alert:#ef5350; --alert-soft:#3a1d1d; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0f1512; --panel:#18211c; --ink:#e6eee8; --muted:#9db0a5; --line:#2a3830;
+  --side:#0b2419; --side-2:#071a12; --accent:#5fc28f; --accent-soft:#1c3328;
+  --alert:#ef5350; --alert-soft:#3a1d1d; color-scheme:dark}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.5 var(--font-body)}
+button,select{font:inherit;color:inherit}
+button:focus-visible,select:focus-visible,a:focus-visible,[tabindex]:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.app{display:grid;grid-template-columns:220px minmax(0,1fr);min-height:100vh}
+
+/* --- Barra lateral --- */
+.side{background:linear-gradient(180deg,var(--side),var(--side-2));color:var(--side-ink);padding:18px 12px;display:flex;flex-direction:column;gap:18px;position:sticky;top:0;height:100vh}
+.logo{display:flex;align-items:center;gap:10px;padding:0 6px 14px;border-bottom:1px solid rgba(255,255,255,.12)}
+.logo b{font:800 17px/1 var(--font-display);letter-spacing:.04em}
+.nav{display:grid;gap:4px}
+.nav button{display:flex;align-items:center;gap:10px;border:0;background:none;color:var(--side-ink);padding:10px 12px;border-radius:8px;cursor:pointer;text-align:left;font-weight:500}
+.nav button:hover{background:rgba(255,255,255,.07)}
+.nav button[aria-current="page"]{background:var(--side-active);box-shadow:inset 3px 0 0 #8fe0b3}
+.nav svg{flex:none;width:18px;height:18px}
+.nav .cnt{margin-left:auto;background:var(--alert);color:#fff;font:600 11px var(--font-data);padding:1px 7px;border-radius:999px}
+.side-foot{margin-top:auto;font-size:12px;color:var(--side-muted);display:grid;gap:6px;padding:0 6px}
+.side-foot .st{display:flex;align-items:center;gap:6px;color:var(--side-ink)}
+.side-foot .st i{width:8px;height:8px;border-radius:50%;background:#59d18c;display:inline-block}
+.side-foot .st.warn i{background:#f0a23a}
+
+/* --- Encabezado --- */
+.main{padding:18px 22px 28px;display:flex;flex-direction:column;gap:16px;min-width:0}
+.top{display:flex;flex-wrap:wrap;align-items:center;gap:10px 14px}
+.top h1{font:700 clamp(19px,2.3vw,24px)/1.2 var(--font-display);margin:0 auto 0 0;text-wrap:balance}
+.ctl{display:inline-flex;align-items:center;gap:8px;background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:6px 10px;font-weight:500}
+.ctl select{border:0;background:transparent;font-weight:600;cursor:pointer;padding-right:4px}
+.ctl svg{width:16px;height:16px;color:var(--muted)}
+.banner{background:var(--alert-soft);border:1px solid var(--alert);color:var(--ink);border-radius:8px;padding:8px 12px;font-size:13px}
+.banner[hidden]{display:none}
+
+/* --- Inicio --- */
+.home{display:grid;grid-template-columns:minmax(0,1fr) 320px;gap:16px;align-items:start}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:12px;min-width:0}
+.pad{padding:14px 16px}
+.mapcard{position:relative;overflow:hidden;padding:0}
+#map{height:min(68vh,640px);min-height:420px;background:#2b3a33}
+#map.big{height:calc(100vh - 120px)}
+.legend{position:absolute;z-index:500;top:12px;left:12px;background:var(--panel);color:var(--ink);border-radius:10px;padding:12px 14px;box-shadow:0 4px 16px rgba(0,0,0,.25);width:200px;font-size:13px}
+.legend h3{font:600 14px var(--font-body);margin:0 0 8px}
+.legend .lv{display:flex;align-items:center;gap:8px;margin:5px 0}
+.legend .lv i{width:12px;height:12px;border-radius:50%;flex:none}
+.legend hr{border:0;border-top:1px solid var(--line);margin:10px 0}
+.tg{display:flex;align-items:center;gap:8px;margin:7px 0;cursor:pointer;user-select:none}
+.tg .ic{width:16px;text-align:center;flex:none}
+.tg span{flex:1}
+.sw{appearance:none;width:30px;height:17px;border-radius:999px;background:#b9c4bd;position:relative;cursor:pointer;flex:none;margin:0;transition:background .15s}
+.sw::after{content:"";position:absolute;top:2px;left:2px;width:13px;height:13px;border-radius:50%;background:#fff;transition:transform .15s}
+.sw:checked{background:var(--accent)}
+.sw:checked::after{transform:translateX(13px)}
+.legend .min{display:none;border:0;background:none;cursor:pointer;color:var(--muted);float:right;padding:0;font-size:16px;line-height:1}
+.north{background:var(--panel);color:var(--ink);border-radius:50%;width:34px;height:34px;display:grid;place-items:center;box-shadow:0 2px 8px rgba(0,0,0,.3);font:700 11px var(--font-body)}
+.leaflet-container{font:13px var(--font-body)}
+.leaflet-tooltip.dist{background:var(--panel);color:var(--ink);border:1px solid var(--line);font-size:12px}
+.lago{color:#fff;font:600 13px var(--font-body);text-shadow:0 1px 3px rgba(0,0,0,.9);text-align:center;white-space:nowrap}
+.flame{filter:drop-shadow(0 0 4px rgba(255,120,0,.9))}
+
+.right{display:grid;gap:14px}
+.alert{border:0;overflow:hidden}
+.alert .hd{background:var(--alert);color:#fff;padding:11px 14px;display:flex;align-items:center;gap:10px;font:700 15px var(--font-body)}
+.alert.ok .hd{background:var(--accent)}
+.alert .bd{padding:12px 14px;display:grid;gap:10px;border:1px solid var(--line);border-top:0;border-radius:0 0 12px 12px}
+.alert .bd p{margin:0}
+.btn{display:flex;align-items:center;justify-content:space-between;gap:8px;border:0;border-radius:8px;background:var(--side);color:#fff;font-weight:600;padding:10px 14px;cursor:pointer;width:100%}
+.btn:hover{background:var(--side-active)}
+.btn.ghost{background:var(--panel);color:var(--ink);border:1px solid var(--line);width:auto}
+.btn.ghost:hover{background:var(--accent-soft)}
+h2{font:700 16px/1.25 var(--font-display);margin:0 0 10px}
+.zones{display:grid;gap:10px}
+.zone{display:flex;align-items:center;gap:10px}
+.zone .zi{width:28px;height:28px;border-radius:8px;display:grid;place-items:center;background:var(--accent-soft);color:var(--accent);flex:none}
+.zone b{font-variant-numeric:tabular-nums}
+.now{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;text-align:center}
+.now div{background:var(--bg);border-radius:8px;padding:8px 4px}
+.now span{display:block;font-size:11px;color:var(--muted)}
+.now b{font:600 17px var(--font-data);font-variant-numeric:tabular-nums}
+.days{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:4px;margin-top:10px}
+.day{border-radius:6px;padding:4px 2px;text-align:center;font-size:10px;background:var(--bg)}
+.day b{display:block;font:600 11px var(--font-data)}
+.day i{display:block;height:5px;border-radius:3px;margin-top:3px}
+.muted{color:var(--muted)}
+.small{font-size:12px}
+.chip{display:inline-flex;align-items:center;gap:5px;font:600 12px var(--font-body);padding:2px 9px;border-radius:999px;color:#fff;white-space:nowrap}
+.chip.dk{color:#1b1b1b}
+
+/* --- Alertas / Reportes / Configuración --- */
+.view[hidden]{display:none!important}
+.alist{display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:12px}
+.acard{border-left:5px solid var(--c);padding:12px 14px;cursor:pointer}
+.acard:hover{box-shadow:0 3px 12px rgba(0,0,0,.08)}
+.acard h3{margin:0;font:700 15px var(--font-body)}
+.acard ul{margin:8px 0 0;padding-left:18px;font-size:13px}
+.toolbar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-bottom:12px}
+.kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+.kpi{padding:12px 14px;border-top:4px solid var(--c)}
+.kpi b{display:block;font:800 28px/1.1 var(--font-display);font-variant-numeric:tabular-nums}
+.kpi span{color:var(--muted);font-size:13px}
+.two{display:grid;grid-template-columns:minmax(0,1.4fr) minmax(0,1fr);gap:16px;align-items:start}
+.tbl{overflow:auto;max-height:520px}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{position:sticky;top:0;background:var(--panel);text-align:left;font:500 11px var(--font-data);text-transform:uppercase;letter-spacing:.05em;color:var(--muted);padding:7px 8px;border-bottom:1px solid var(--line);z-index:1}
+td{padding:7px 8px;border-bottom:1px solid var(--line)}
+td.num,th.num{text-align:right;font-family:var(--font-data);font-variant-numeric:tabular-nums}
+tbody tr.clk{cursor:pointer}
+tbody tr.clk:hover{background:var(--accent-soft)}
+.imp{display:grid;grid-template-columns:minmax(0,1fr) 110px;gap:6px 10px;align-items:center;font-size:13px}
+.bar{height:8px;background:var(--accent);border-radius:4px}
+.cfg{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:16px}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:8px;overflow:hidden}
+.seg button{border:0;background:var(--panel);padding:6px 12px;cursor:pointer;font-weight:600;color:var(--muted)}
+.seg button[aria-pressed="true"]{background:var(--accent);color:#fff}
+.row{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:8px 0;border-bottom:1px solid var(--line)}
+.row:last-child{border-bottom:0}
+code{font-family:var(--font-data);background:var(--bg);padding:1px 5px;border-radius:4px;font-size:12px}
+footer{font-size:12px;color:var(--muted)}
+
+/* --- Ficha (diálogo) --- */
+dialog{border:0;border-radius:14px;padding:0;max-width:640px;width:calc(100% - 32px);background:var(--panel);color:var(--ink);box-shadow:0 20px 60px rgba(0,0,0,.35)}
+dialog::backdrop{background:rgba(5,20,12,.55)}
+.dlg-h{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;padding:16px 18px;border-bottom:1px solid var(--line)}
+.dlg-h h2{margin:0;font-size:20px}
+.dlg-b{padding:14px 18px 18px;display:grid;gap:14px;max-height:72vh;overflow:auto}
+.dlg-b h3{font:600 12px var(--font-body);text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin:0 0 6px}
+.dlg-b ul{margin:0;padding-left:18px;display:grid;gap:4px}
+.x{border:0;background:var(--bg);border-radius:8px;width:32px;height:32px;cursor:pointer;font-size:18px;flex:none}
+.prob{font:800 34px/1 var(--font-display);font-variant-numeric:tabular-nums}
+.draft{font:500 11px var(--font-data);color:var(--alto)}
+.cond{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:6px}
+.cond div{background:var(--bg);border-radius:6px;padding:6px;text-align:center}
+.cond b{display:block;font:500 14px var(--font-data)}
+.cond span{font-size:11px;color:var(--muted)}
+
+@media (max-width:1100px){.home{grid-template-columns:1fr}.right{grid-template-columns:repeat(auto-fit,minmax(260px,1fr))}}
+@media (max-width:820px){
+  .app{grid-template-columns:1fr}
+  .side{position:sticky;top:0;z-index:1000;height:auto;flex-direction:row;align-items:center;padding:8px 10px;gap:8px;overflow-x:auto}
+  .logo{border:0;padding:0 4px}.logo b{display:none}
+  .nav{display:flex}.nav button{padding:8px 10px;white-space:nowrap}
+  .side-foot{display:none}
+  .main{padding:14px 16px 24px}
+  .two,.kpis{grid-template-columns:1fr 1fr}.two{grid-template-columns:1fr}
+  #map{height:62vh;min-height:360px}
+  .legend{width:auto;max-width:190px;padding:10px 12px}
+  .legend .min{display:block}
+  .legend.closed .body{display:none}
+  .cond{grid-template-columns:repeat(3,minmax(0,1fr))}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+@media print{.side,.top .ctl,.toolbar button{display:none}.app{display:block}}
+</style>
+</head>
+<body>
+<div class="app">
+  <aside class="side">
+    <div class="logo">
+      <svg width="34" height="28" viewBox="0 0 44 36" aria-hidden="true"><path d="M2 34 L15 10 L22 20 L29 6 L42 34 Z" fill="none" stroke="#e3efe7" stroke-width="2.6" stroke-linejoin="round"/><path d="M22 34c-5 0-7-4-5-8 1 2 3 2 3 0 0-3 2-5 4-6-1 3 2 4 2 7 1-1 1-2 1-3 2 2 3 4 2 6-1 3-4 4-7 4z" fill="#ff8a3d"/></svg>
+      <b>ÑAWPAQ PACHA</b>
+    </div>
+    <nav class="nav" aria-label="Secciones">
+      <button data-v="inicio" aria-current="page"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/></svg>Inicio</button>
+      <button data-v="mapa"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 21s-7-6.2-7-12a7 7 0 0 1 14 0c0 5.8-7 12-7 12z"/><circle cx="12" cy="9" r="2.5"/></svg>Mapa de riesgo</button>
+      <button data-v="alertas"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2 1 21h22L12 2zm1 15h-2v-2h2v2zm0-4h-2V9h2v4z"/></svg>Alertas<span class="cnt" id="nav-cnt" hidden></span></button>
+      <button data-v="reportes"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 3H6a1 1 0 0 0-1 1v16a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V8z"/><path d="M14 3v5h5M9 13h6M9 17h6"/></svg>Reportes</button>
+      <button data-v="config"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>Configuración</button>
+    </nav>
+    <div class="side-foot">
+      <div class="st" id="st-datos"><i></i><span></span></div>
+      <div id="st-gen"></div>
+      <div id="st-live"></div>
+    </div>
+  </aside>
+
+  <main class="main">
+    <div class="top">
+      <h1 id="titulo">Mapa de riesgo de incendios forestales</h1>
+      <label class="ctl"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 21s-7-6.2-7-12a7 7 0 0 1 14 0c0 5.8-7 12-7 12z"/></svg>
+        <select id="zona" aria-label="Zona"></select></label>
+      <span class="ctl"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg><span id="hoy"></span></span>
+    </div>
+    <div class="banner" id="banner" hidden></div>
+
+    <!-- INICIO / MAPA -->
+    <section class="view home" id="v-inicio">
+      <div class="card mapcard">
+        <div id="map" role="application" aria-label="Mapa de riesgo de incendios por distrito"></div>
+        <div class="legend" id="legend">
+          <button class="min" id="leg-min" aria-label="Mostrar u ocultar leyenda">▾</button>
+          <h3>Nivel de riesgo</h3>
+          <div class="body">
+            <div id="leg-niveles"></div>
+            <hr>
+            <label class="tg"><span class="ic">🔥</span><span>Focos activos (7 días)</span><input type="checkbox" class="sw" data-capa="activos" checked></label>
+            <label class="tg"><span class="ic" style="color:var(--muyalto)">●</span><span>Incendios históricos (12 m)</span><input type="checkbox" class="sw" data-capa="historicos" checked></label>
+            <label class="tg"><span class="ic">🌾</span><span>Áreas agrícolas</span><input type="checkbox" class="sw" data-capa="agricola"></label>
+            <label class="tg"><span class="ic">🌿</span><span>Pastizales</span><input type="checkbox" class="sw" data-capa="pastizal"></label>
+            <label class="tg"><span class="ic">🏠</span><span>Comunidades</span><input type="checkbox" class="sw" data-capa="lugares"></label>
+            <label class="tg"><span class="ic">🐾</span><span>Biodiversidad</span><input type="checkbox" class="sw" data-capa="protegidas" checked></label>
+          </div>
+        </div>
+      </div>
+      <div class="right" id="right">
+        <div class="card alert" id="alert-card"></div>
+        <div class="card pad"><h2>Zonas en riesgo</h2><div class="zones" id="zones"></div></div>
+        <div class="card pad"><h2 id="now-t">Condiciones actuales</h2><div class="now" id="now"></div><div class="days" id="days"></div><div class="small muted" id="now-src" style="margin-top:8px"></div></div>
+      </div>
+    </section>
+
+    <!-- ALERTAS -->
+    <section class="view" id="v-alertas" hidden>
+      <div class="toolbar">
+        <div class="seg" role="group" aria-label="Filtro de alertas" id="af">
+          <button data-f="alerta" aria-pressed="true">Con alerta</button><button data-f="todos" aria-pressed="false">Todos</button>
+        </div>
+        <span class="small muted" id="a-info"></span>
+      </div>
+      <div class="alist" id="alist"></div>
+    </section>
+
+    <!-- REPORTES -->
+    <section class="view" id="v-reportes" hidden>
+      <div class="kpis" id="kpis" style="margin-bottom:16px"></div>
+      <div class="two">
+        <div class="card pad">
+          <div class="toolbar" style="justify-content:space-between">
+            <h2 style="margin:0">Distritos ordenados por riesgo</h2>
+            <div style="display:flex;gap:8px"><button class="btn ghost" id="dl-csv">⬇ CSV</button><button class="btn ghost" onclick="print()">🖨 Imprimir</button></div>
+          </div>
+          <div class="tbl"><table>
+            <thead><tr><th>Distrito</th><th>Provincia</th><th class="num">Prob. mes</th><th>Modelo</th><th>Alerta final</th><th class="num">Focos 48 h</th></tr></thead>
+            <tbody id="rows"></tbody></table></div>
+        </div>
+        <div class="card pad">
+          <h2>¿Qué tan bien funciona el modelo?</h2>
+          <p class="small muted" id="periodos" style="margin-top:0"></p>
+          <table id="metrics"></table>
+          <h2 style="margin-top:18px">Lo que más pesa en la estimación</h2>
+          <div class="imp" id="imp"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- CONFIGURACIÓN -->
+    <section class="view" id="v-config" hidden>
+      <div class="cfg">
+        <div class="card pad">
+          <h2>Preferencias</h2>
+          <div class="row"><span>Idioma de las alertas</span><div class="seg" id="seg-lang"><button data-l="es" aria-pressed="true">Español</button><button data-l="qu" aria-pressed="false">Quechua</button></div></div>
+          <div class="row"><span>Tema</span><div class="seg" id="seg-theme"><button data-t="" aria-pressed="true">Auto</button><button data-t="light" aria-pressed="false">Claro</button><button data-t="dark" aria-pressed="false">Oscuro</button></div></div>
+          <div class="row"><span>Mapa base</span><div class="seg" id="seg-base"><button data-b="sat" aria-pressed="true">Satélite</button><button data-b="topo" aria-pressed="false">Relieve</button></div></div>
+          <div class="row"><span>Pronóstico del tiempo en vivo</span><button class="btn ghost" id="refresh">↻ Actualizar ahora</button></div>
+        </div>
+        <div class="card pad">
+          <h2>Cómo se calcula la alerta</h2>
+          <div id="reglas" class="small"></div>
+        </div>
+        <div class="card pad">
+          <h2>Fuentes de datos</h2>
+          <ul id="fuentes" class="small" style="padding-left:18px;margin:0"></ul>
+          <p class="small muted">Para actualizar los datos del modelo, ejecuta en la carpeta del proyecto:<br><code>python main.py --datos-reales</code></p>
+        </div>
+      </div>
+    </section>
+
+    <footer id="footer"></footer>
+  </main>
+</div>
+
+<dialog id="dlg" aria-labelledby="dlg-t"><div class="dlg-h"><div><div class="small muted" id="dlg-p"></div><h2 id="dlg-t"></h2></div><button class="x" aria-label="Cerrar" onclick="document.getElementById('dlg').close()">×</button></div><div class="dlg-b" id="dlg-b"></div></dialog>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<script src="datos_riesgo.js"></script>
+<script>
+(function(){
+const D = window.NAWPAQ;
+if(!D){document.querySelector('.main').innerHTML='<div class="card pad"><h2>Faltan los datos</h2><p>Ejecuta <code>python main.py --datos-reales</code> para generar <code>dashboard/datos_riesgo.js</code>.</p></div>';return;}
+const N = D.niveles, VAR = {"Bajo":"--bajo","Medio":"--medio","Alto":"--alto","Muy alto":"--muyalto"};
+const col = n => `var(${VAR[n]})`;
+const hex = n => getComputedStyle(document.documentElement).getPropertyValue(VAR[n]).trim();
+const pct = p => Math.round(p*100)+'%';
+const esc = s => String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const fmt1 = v => v==null?'–':(Math.round(v*10)/10).toString();
+const byU = Object.fromEntries(D.distritos.map(d=>[d.ubigeo,d]));
+const store = {get(k){try{return localStorage.getItem('nawpaq.'+k)}catch(e){return null}}, set(k,v){try{localStorage.setItem('nawpaq.'+k,v)}catch(e){}}};
+let lang = store.get('lang')||'es', zona = '', sel = null, vista = 'inicio', filtroA = 'alerta';
+let actual = {};   // condiciones actuales en vivo por ubigeo
+
+// ---------- Regla de alerta de corto plazo (igual que src/alertas.py) ----------
+const R = D.peligro_tiempo;
+function peligroDia(h,v,ll){
+  if(h==null||v==null||ll==null||ll>=R.lluvia_anula) return R.niveles[0];
+  const p=(h<R.humedad_min[0])+(h<R.humedad_min[1])+(v>=R.viento_max[0])+(v>=R.viento_max[1])+(ll<R.lluvia_seca);
+  return R.niveles[R.cortes.filter(c=>p>=c).length];
+}
+function recalcular(d){
+  let i=N.indexOf(d.nivel); const mot=[];
+  const p3=(d.tiempo||[]).slice(0,3).map(x=>x.peligro);
+  if(i>=1 && p3.filter(p=>p==='Alto'||p==='Extremo').length>=2){i=Math.min(i+1,N.length-1);mot.push('Pronóstico: aire seco y viento fuerte en los próximos 3 días')}
+  if(d.focos_48h>0 && i<2) i=2;
+  if(d.focos_48h>0) mot.push(`${d.focos_48h} foco(s) activo(s) detectado(s) por satélite en las últimas 48 h`);
+  d.nivel_final=N[i]; d.motivos_alerta=mot;
+}
+const PEL_COL = {"Bajo":"--bajo","Moderado":"--medio","Alto":"--alto","Extremo":"--muyalto"};
+const iAlerta = N.indexOf(D.nivel_alerta);
+const conAlerta = d => N.indexOf(d.nivel_final)>=iAlerta;
+
+// ---------- Zona (región / provincia) ----------
+const provs=[...new Set(D.distritos.map(d=>d.provincia))].sort();
+const zs=document.getElementById('zona');
+zs.innerHTML='<option value="">Puno (región)</option>'+provs.map(p=>`<option value="${esc(p)}">Prov. ${esc(p)}</option>`).join('');
+zs.onchange=()=>{zona=zs.value;sel=null;encuadrar();render()};
+const enZona = d => !zona || d.provincia===zona;
+const distZona = () => D.distritos.filter(enZona);
+
+const hoy=new Date();
+document.getElementById('hoy').textContent='Hoy, '+hoy.toLocaleDateString('es-PE',{day:'numeric',month:'short',year:'numeric'});
+
+// ---------- Estado de datos ----------
+document.querySelector('#st-datos span').textContent='Datos reales';
+document.getElementById('st-gen').textContent=`Modelo: pronóstico de ${D.mes_pronostico}`+(D.fuentes&&D.fuentes.ultimo_mes_datos?` · datos hasta ${D.fuentes.ultimo_mes_datos}`:'')+` · generado ${D.generado}`;
+const ban=document.getElementById('banner');
+if(D.fuentes&&D.fuentes.firms_anio_en_curso===false){ban.hidden=false;ban.innerHTML='<b>Faltan focos de calor del año en curso.</b> Agrega tu clave gratuita de NASA FIRMS en el archivo <code>.env</code> (<code>FIRMS_MAP_KEY=…</code>) y vuelve a ejecutar <code>python main.py --datos-reales</code>.';}
+
+// ---------- Mapa ----------
+const map=L.map('map',{zoomControl:false,zoomSnap:.25}).setView([-15,-70],7);
+L.control.zoom({position:'bottomright'}).addTo(map);
+const bases={
+  sat:[L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',{maxZoom:18,attribution:'Imágenes © Esri, Maxar, Earthstar Geographics'}),
+       L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}',{maxZoom:18,opacity:.9})],
+  topo:[L.tileLayer('https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png',{maxZoom:16,attribution:'© OpenStreetMap, SRTM · OpenTopoMap'})]
+};
+let base=store.get('base')||'sat';
+function setBase(b){Object.values(bases).flat().forEach(l=>map.removeLayer(l));bases[b].forEach(l=>l.addTo(map).bringToBack());base=b;store.set('base',b);
+  document.querySelectorAll('#seg-base button').forEach(x=>x.setAttribute('aria-pressed',x.dataset.b===b));}
+setBase(base);
+L.control.scale({imperial:false,position:'bottomleft'}).addTo(map);
+const Norte=L.Control.extend({onAdd(){const d=L.DomUtil.create('div','north');d.innerHTML='<svg width="14" height="18" viewBox="0 0 14 18" aria-hidden="true"><path d="M7 0 L13 14 L7 10 L1 14 Z" fill="currentColor"/></svg>N';d.title='Norte';return d}});
+new Norte({position:'topright'}).addTo(map);
+L.marker([-15.75,-69.55],{interactive:false,icon:L.divIcon({className:'lago',html:'Lago Titicaca',iconSize:[110,20],iconAnchor:[55,10]})}).addTo(map);
+
+const estilo=f=>{const d=byU[f.properties.ubigeo];const vis=d&&enZona(d);
+  return {color:sel===f.properties.ubigeo?'#ffffff':'rgba(255,255,255,.75)',weight:sel===f.properties.ubigeo?3:.8,
+          fillColor:d?hex(d.nivel_final):'#888',fillOpacity:vis?.55:.12,opacity:vis?1:.35}};
+const capaDist=L.geoJSON(D.geojson,{style:estilo,onEachFeature:(f,l)=>{
+  const d=byU[f.properties.ubigeo];
+  l.bindTooltip(()=>{const x=byU[f.properties.ubigeo];return x?`<b>${esc(x.distrito)}</b><br>${x.nivel_final}${x.nivel_final!==x.nivel?` (modelo: ${x.nivel})`:''} · ${pct(x.probabilidad)}`:esc(f.properties.distrito)},{className:'dist',sticky:true});
+  l.on('click',()=>{if(d)seleccionar(d.ubigeo,false)});
+}}).addTo(map);
+const capaPorU={}; capaDist.eachLayer(l=>capaPorU[l.feature.properties.ubigeo]=l);
+
+const rend=L.canvas({padding:.3});
+const capas={
+  historicos:L.layerGroup(D.capas.focos_12m.map(p=>L.circleMarker([p[0],p[1]],{renderer:rend,radius:2.5,weight:0,fillColor:'#ff3b1f',fillOpacity:.75}).bindTooltip(`Foco de calor · ${esc(p[2]).slice(0,10)}`))),
+  activos:L.layerGroup(D.capas.focos_activos.map(p=>L.marker([p[0],p[1]],{icon:L.divIcon({className:'',html:'<svg class="flame" width="22" height="26" viewBox="0 0 24 28"><path d="M12 27c-6 0-9-4.4-9-9 0-4 2.4-6.7 4.3-8.6.4 2 1.6 3.3 3 3.6C9.6 8.3 12 4 15.5 1c-.6 3.7 1 6.3 2.8 8.6C20.3 12 21 14.4 21 17.5 21 23 17.5 27 12 27z" fill="#ff5a1f" stroke="#fff" stroke-width="1.5"/><path d="M12 25c-2.6 0-4-1.9-4-4 0-2 1.3-3.4 2.3-4.3.2 1.3 1 2 1.9 2 0-2 1-3.6 2.4-4.6.1 2 2 3.5 2 6 0 3-2 4.9-4.6 4.9z" fill="#ffd23f"/></svg>',iconSize:[22,26],iconAnchor:[11,24]})})
+      .bindPopup(`<b>Foco activo</b><br>${esc(p[2])} ${String(p[3]).padStart(4,'0').replace(/(\d\d)(\d\d)/,'$1:$2')} UTC<br>Sensor: ${esc(p[4])}<br>Distrito: ${esc(byU[p[5]]?.distrito||'')}`))),
+  lugares:L.layerGroup(D.capas.lugares.map(p=>L.circleMarker([p[0],p[1]],{renderer:rend,radius:p[3]==='village'?3:5,color:'#fff',weight:1,fillColor:'#2f80ed',fillOpacity:.9}).bindTooltip(`${esc(p[2])} (${p[3]==='village'?'centro poblado':p[3]==='town'?'ciudad':'capital'})`))),
+  protegidas:L.layerGroup(D.capas.protegidas.map(a=>L.polyline(a.lineas.map(r=>r.map(([x,y])=>[y,x])),{color:'#7CFC9A',weight:2,dashArray:'5 4'}).bindTooltip(esc(a.nombre),{sticky:true}))),
+  agricola:L.geoJSON(D.geojson,{filter:f=>(byU[f.properties.ubigeo]?.territorio?.pct_agricola||0)>=10,style:{color:'#ffe066',weight:2,fill:false,dashArray:'2 4'},interactive:false}),
+  pastizal:L.geoJSON(D.geojson,{filter:f=>(byU[f.properties.ubigeo]?.territorio?.pct_pastizal||0)>=50,style:{color:'#b6f07a',weight:2,fill:false,dashArray:'6 3'},interactive:false}),
+};
+const capasOn=JSON.parse(store.get('capas')||'null')||{};
+document.querySelectorAll('.sw[data-capa]').forEach(cb=>{
+  const k=cb.dataset.capa; if(k in capasOn) cb.checked=capasOn[k];
+  const apl=()=>{cb.checked?capas[k].addTo(map):map.removeLayer(capas[k]);capasOn[k]=cb.checked;store.set('capas',JSON.stringify(capasOn))};
+  cb.addEventListener('change',apl); apl();
+});
+document.getElementById('leg-min').onclick=()=>document.getElementById('legend').classList.toggle('closed');
+document.getElementById('leg-niveles').innerHTML=N.slice().reverse().map(n=>`<div class="lv"><i style="background:${col(n)}"></i>${n}${lang==='qu'?` · ${D.nivel_qu[n]}`:''}</div>`).join('');
+L.DomEvent.disableClickPropagation(document.getElementById('legend'));
+L.DomEvent.disableScrollPropagation(document.getElementById('legend'));
+
+function encuadrar(){
+  const ls=distZona().map(d=>capaPorU[d.ubigeo]).filter(Boolean);
+  if(ls.length) map.fitBounds(L.featureGroup(ls).getBounds(),{paddingTopLeft:[innerWidth>820?150:10,10],paddingBottomRight:[10,10]});
+}
+
+// ---------- Panel derecho ----------
+function zonaTexto(ds){
+  if(!ds.length) return '';
+  const all=distZona(); const lat=all.map(d=>d.centro?.[0]).filter(v=>v!=null);
+  const mn=Math.min(...lat), mx=Math.max(...lat), m=ds.reduce((s,d)=>s+(d.centro?.[0]||0),0)/ds.length;
+  const t=(m-mn)/((mx-mn)||1);
+  return t>.62?'la zona norte':t<.38?'la zona sur':'la zona centro';
+}
+function alertaCard(){
+  const el=document.getElementById('alert-card');
+  const lugar=zona?`la provincia ${zona}`:'Puno';
+  if(sel){ // ficha corta del distrito
+    const d=byU[sel], al=conAlerta(d);
+    el.className='card alert'+(al?'':' ok');
+    el.innerHTML=`<div class="hd">${al?'⚠':'✓'} ${al?D.titulo[lang]:'Sin alerta activa'}</div><div class="bd">
+      <p><b>${esc(d.distrito)}</b> · ${esc(d.provincia)}<br>Riesgo <b>${d.nivel_final.toLowerCase()}</b>${lang==='qu'?` (${D.nivel_qu[d.nivel_final]})`:''} · probabilidad de incendio en ${esc(D.mes_pronostico)}: <b>${pct(d.probabilidad)}</b></p>
+      ${d.motivos_alerta.length?`<p class="small">${d.motivos_alerta.map(esc).join('<br>')}</p>`:''}
+      <button class="btn" id="ver-rec">Ver recomendaciones <span>→</span></button>
+      <button class="btn ghost" id="ver-todo" style="width:100%">← Volver a ${esc(zona?'la provincia':'toda la región')}</button></div>`;
+    document.getElementById('ver-rec').onclick=()=>ficha(sel);
+    document.getElementById('ver-todo').onclick=()=>{sel=null;encuadrar();render()};
+    return;
+  }
+  const ds=distZona(), al=ds.filter(conAlerta);
+  if(!al.length){
+    el.className='card alert ok';
+    el.innerHTML=`<div class="hd">✓ Sin alertas activas</div><div class="bd"><p>No hay distritos en nivel alto o muy alto en ${esc(lugar)} para ${esc(D.mes_pronostico)}. Mantén las buenas prácticas y vigila las quemas.</p><button class="btn" id="ver-rec">Ver recomendaciones <span>→</span></button></div>`;
+  } else {
+    const muy=al.filter(d=>d.nivel_final==='Muy alto');
+    const viento=Math.max(0,...al.flatMap(d=>(d.tiempo||[]).slice(0,3).map(x=>x.viento_max||0)));
+    const secos=al.filter(d=>(d.tiempo||[]).slice(0,3).some(x=>x.peligro==='Alto'||x.peligro==='Extremo')).length;
+    const focos=al.reduce((s,d)=>s+d.focos_48h,0);
+    const top=al.slice().sort((a,b)=>N.indexOf(b.nivel_final)-N.indexOf(a.nivel_final)||b.probabilidad-a.probabilidad).slice(0,3).map(d=>d.distrito);
+    el.className='card alert';
+    el.innerHTML=`<div class="hd">⚠ ${D.titulo[lang]==='Alerta orientativa de incendio'?'Alerta de incendio':D.titulo[lang]}</div><div class="bd">
+      <p>Riesgo ${muy.length?'muy alto':'alto'} en ${esc(zonaTexto(al))} de ${esc(lugar)}: <b>${al.length}</b> distrito(s) con alerta, entre ellos ${top.map(esc).join(', ')}.
+      ${secos?`Posible propagación en los próximos días si continúan el aire seco y el viento (hasta ${Math.round(viento)} km/h).`:''}
+      ${focos?`<br><b>${focos}</b> foco(s) activo(s) detectado(s) por satélite en las últimas 48 h.`:''}</p>
+      <button class="btn" id="ver-rec">Ver recomendaciones <span>→</span></button></div>`;
+  }
+  document.getElementById('ver-rec').onclick=()=>ficha(null);
+}
+function zonas(){
+  const base=sel?[byU[sel]]:distZona(), al=base.filter(conAlerta);
+  const cult=al.filter(d=>(d.territorio?.pct_agricola||0)>=10).length;
+  const past=al.filter(d=>(d.territorio?.pct_pastizal||0)>=50).length;
+  const setU=new Set(al.map(d=>d.ubigeo));
+  const com=D.capas.lugares.filter(p=>setU.has(p[4]));
+  const comD=new Set(com.map(p=>p[4])).size;
+  const bio=D.capas.protegidas.filter(a=>a.lineas.some(r=>r.some(([x,y])=>al.some(d=>dentro(d.ubigeo,x,y))))).length;
+  const z=[['🌾','Cultivos',`${cult} distrito${cult===1?'':'s'}`],['🌿','Pastizales',`${past} distrito${past===1?'':'s'}`],
+           ['🏠','Comunidades',com.length?`${com.length} centros poblados en ${comD} distrito${comD===1?'':'s'}`:`${al.length?al.length+' distrito'+(al.length===1?'':'s'):'0 distritos'}`],
+           ['🐾','Biodiversidad',`${bio} área${bio===1?'':'s'} protegida${bio===1?'':'s'}`]];
+  document.getElementById('zones').innerHTML=(al.length?'':`<div class="small muted">Sin distritos en alerta en esta zona.</div>`)+
+    z.map(([i,t,v])=>`<div class="zone"><span class="zi">${i}</span><span><b>${t}:</b> ${v}</span></div>`).join('');
+}
+// punto dentro de polígono (para cruzar áreas protegidas con distritos en alerta)
+const geomU=Object.fromEntries(D.geojson.features.map(f=>[f.properties.ubigeo,f.geometry]));
+function dentro(u,x,y){const g=geomU[u];if(!g)return false;const polys=g.type==='Polygon'?[g.coordinates]:g.coordinates;
+  return polys.some(p=>{let c=false;const r=p[0];for(let i=0,j=r.length-1;i<r.length;j=i++){const[xi,yi]=r[i],[xj,yj]=r[j];if((yi>y)!==(yj>y)&&x<(xj-xi)*(y-yi)/(yj-yi)+xi)c=!c}return c})}
+
+function condiciones(){
+  const ds=distZona().slice().sort((a,b)=>N.indexOf(b.nivel_final)-N.indexOf(a.nivel_final)||b.probabilidad-a.probabilidad);
+  const d=sel?byU[sel]:ds[0]; if(!d) return;
+  const c=actual[d.ubigeo];
+  document.getElementById('now-t').textContent='Condiciones actuales';
+  document.getElementById('now').innerHTML=`<div><span>🌡 Temperatura</span><b>${c?fmt1(c.temperature_2m)+'°C':'–'}</b></div>
+    <div><span>💨 Viento</span><b>${c?Math.round(c.wind_speed_10m):'–'}</b><span>km/h</span></div>
+    <div><span>💧 Humedad</span><b>${c?Math.round(c.relative_humidity_2m)+'%':'–'}</b></div>`;
+  const t=d.tiempo||[];
+  document.getElementById('days').innerHTML=t.map(x=>{const f=new Date(x.fecha+'T12:00');return `<div class="day" title="${esc(x.fecha)} · peligro ${x.peligro} · hum. mín ${x.hum_min}% · viento máx ${x.viento_max} km/h · lluvia ${x.lluvia} mm"><b>${f.toLocaleDateString('es-PE',{weekday:'short'}).slice(0,2)}</b>${Math.round(x.tmax)}°<i style="background:var(${PEL_COL[x.peligro]})"></i></div>`}).join('');
+  document.getElementById('now-src').innerHTML=`${esc(d.distrito)}${sel?'':' (distrito de mayor riesgo)'} · ${c?'en vivo, Open-Meteo '+esc(c.time.slice(11)):'sin conexión'}${t.length?'<br>Barra de color: peligro meteorológico de incendio por día':''}`;
+}
+
+// ---------- Ficha / recomendaciones ----------
+function spark(u){
+  const s=D.historial.series[u]; if(!s||s.prob.length<2)return'';
+  const n=s.prob.length,w=560,h=110,pl=34,pb=20,x=i=>pl+i*(w-pl-6)/(n-1),y=v=>6+(1-v)*(h-pb-6);
+  const line=s.prob.map((v,i)=>`${i?'L':'M'}${x(i).toFixed(1)},${y(v).toFixed(1)}`).join('');
+  const fires=s.incendio.map((v,i)=>v?`<rect x="${(x(i)-2.5).toFixed(1)}" y="${y(0)+2}" width="5" height="7" rx="1" fill="var(--muyalto)"/>`:'').join('');
+  const L_=D.historial.etiquetas;
+  return `<svg viewBox="0 0 ${w} ${h}" width="100%" role="img" aria-label="Probabilidad estimada por mes y meses con incendio">
+   ${[0,.5,1].map(v=>`<line x1="${pl}" x2="${w-6}" y1="${y(v)}" y2="${y(v)}" stroke="var(--line)"/><text x="${pl-5}" y="${y(v)+3}" text-anchor="end" font-size="10" fill="var(--muted)" font-family="IBM Plex Mono,monospace">${v*100}%</text>`).join('')}
+   <path d="${line}L${x(n-1)},${y(0)}L${x(0)},${y(0)}Z" fill="var(--accent-soft)"/><path d="${line}" fill="none" stroke="var(--accent)" stroke-width="1.8"/>${fires}
+   <text x="${pl}" y="${h-2}" font-size="10" fill="var(--muted)" font-family="IBM Plex Mono,monospace">${L_[0]}</text>
+   <text x="${w-6}" y="${h-2}" text-anchor="end" font-size="10" fill="var(--muted)" font-family="IBM Plex Mono,monospace">${L_[L_.length-1]}</text></svg>
+   <div class="small muted"><span style="color:var(--accent)">━</span> probabilidad estimada por la IA · <span style="color:var(--muyalto)">▮</span> mes con incendio detectado por satélite</div>`;
+}
+function ficha(u){
+  const q=lang==='qu', dlg=document.getElementById('dlg');
+  const draft=q&&!D.quechua_validado?'<div class="draft">Borrador en quechua · falta validación con hablantes locales</div>':'';
+  if(!u){
+    const ds=distZona(), al=ds.filter(conAlerta), nv=al.length?al.reduce((m,d)=>N.indexOf(d.nivel_final)>N.indexOf(m)?d.nivel_final:m,'Bajo'):'Medio';
+    document.getElementById('dlg-p').textContent=zona?'Provincia':'Región';
+    document.getElementById('dlg-t').textContent=zona||'Puno';
+    document.getElementById('dlg-b').innerHTML=`
+      <div><h3>Recomendaciones · nivel ${nv}</h3>${draft}<ul>${D.recomendaciones[nv][lang].map(t=>`<li>${esc(t)}</li>`).join('')}</ul></div>
+      <div><h3>Distritos con alerta (${al.length})</h3>${al.length?`<table><tbody>${al.map(d=>`<tr class="clk" data-u="${d.ubigeo}"><td><span class="chip ${d.nivel_final==='Medio'?'dk':''}" style="background:${col(d.nivel_final)}">${d.nivel_final}</span></td><td>${esc(d.distrito)}</td><td class="small muted">${esc(d.provincia)}</td><td class="num">${pct(d.probabilidad)}</td></tr>`).join('')}</tbody></table>`:'<p class="small muted">Ninguno.</p>'}</div>
+      <p class="small muted">${esc(D.aviso[lang])} En emergencia llama al <b>116</b> (Bomberos).</p>`;
+    dlg.querySelectorAll('tr[data-u]').forEach(t=>t.onclick=()=>{dlg.close();seleccionar(t.dataset.u,true)});
+  } else {
+    const d=byU[u], c=d.condiciones, t=d.territorio||{};
+    document.getElementById('dlg-p').textContent=d.provincia;
+    document.getElementById('dlg-t').textContent=d.distrito;
+    document.getElementById('dlg-b').innerHTML=`
+      <div style="display:flex;gap:16px;align-items:center;flex-wrap:wrap">
+        <span class="chip ${d.nivel_final==='Medio'?'dk':''}" style="background:${col(d.nivel_final)};font-size:14px;padding:4px 12px">${q?D.nivel_qu[d.nivel_final]+' · ':''}${d.nivel_final}</span>
+        <div><div class="prob">${pct(d.probabilidad)}</div><div class="small muted">probabilidad de al menos un incendio en ${esc(D.mes_pronostico)} (modelo: ${d.nivel})</div></div></div>
+      ${d.motivos_alerta.length?`<div><h3>Ajuste de la alerta</h3><ul>${d.motivos_alerta.map(m=>`<li>${esc(m)}</li>`).join('')}</ul></div>`:''}
+      <div><h3>${conAlerta(d)?esc(D.titulo[lang]):(q?'Yanapaq willakuykuna':'Recomendaciones')}</h3>${draft}<ul>${D.recomendaciones[d.nivel_final][lang].map(x=>`<li>${esc(x)}</li>`).join('')}</ul></div>
+      <div><h3>Por qué este nivel</h3><ul>${d.factores.map(x=>`<li>${esc(x)}</li>`).join('')}</ul></div>
+      <div><h3>Condiciones del último mes</h3><div class="cond"><div><b>${c.temp_max}°</b><span>T. máx</span></div><div><b>${c.lluvia_3m}</b><span>mm lluvia 3 m</span></div><div><b>${c.humedad}%</b><span>humedad</span></div><div><b>${c.viento}</b><span>km/h viento</span></div><div><b>${c.ndvi}</b><span>NDVI</span></div></div></div>
+      ${(d.tiempo||[]).length?`<div><h3>Pronóstico del tiempo · 7 días</h3><table><thead><tr><th>Día</th><th class="num">T. máx</th><th class="num">Hum. mín</th><th class="num">Viento máx</th><th class="num">Lluvia</th><th>Peligro</th></tr></thead><tbody>${d.tiempo.map(x=>`<tr><td>${new Date(x.fecha+'T12:00').toLocaleDateString('es-PE',{weekday:'short',day:'numeric'})}</td><td class="num">${fmt1(x.tmax)}°</td><td class="num">${x.hum_min??'–'}%</td><td class="num">${fmt1(x.viento_max)}</td><td class="num">${fmt1(x.lluvia)}</td><td><span class="chip ${x.peligro==='Moderado'?'dk':''}" style="background:var(${PEL_COL[x.peligro]})">${x.peligro}</span></td></tr>`).join('')}</tbody></table></div>`:''}
+      <div><h3>Territorio</h3><div class="cond"><div><b>${t.altitud_m??'–'}</b><span>m altitud</span></div><div><b>${t.pendiente_pct??'–'}%</b><span>pendiente</span></div><div><b>${t.pct_pastizal??'–'}%</b><span>pastizal</span></div><div><b>${t.pct_agricola??'–'}%</b><span>agrícola</span></div><div><b>${D.capas.lugares.filter(p=>p[4]===u).length}</b><span>centros poblados</span></div></div></div>
+      <div><h3>Historial: IA frente a lo ocurrido</h3>${spark(u)}</div>
+      <p class="small muted">${esc(D.aviso[lang])} En emergencia llama al <b>116</b> (Bomberos).</p>`;
+  }
+  dlg.showModal();
+}
+
+function seleccionar(u,volar){
+  sel=u; ir('inicio');
+  if(volar&&capaPorU[u]) map.fitBounds(capaPorU[u].getBounds(),{maxZoom:10,padding:[30,30]});
+  render();
+}
+
+// ---------- Alertas ----------
+function vistaAlertas(){
+  const ds=distZona().filter(d=>filtroA==='todos'||conAlerta(d));
+  document.getElementById('a-info').textContent=`${ds.length} distrito(s) · ${zona?'provincia '+zona:'toda la región'} · pronóstico ${D.mes_pronostico}`;
+  document.getElementById('alist').innerHTML=ds.length?ds.map(d=>`<div class="card acard" tabindex="0" data-u="${d.ubigeo}" style="--c:${col(d.nivel_final)}">
+    <div style="display:flex;justify-content:space-between;gap:8px;align-items:flex-start"><div><h3>${esc(d.distrito)}</h3><div class="small muted">${esc(d.provincia)}</div></div>
+    <span class="chip ${d.nivel_final==='Medio'?'dk':''}" style="background:${col(d.nivel_final)}">${d.nivel_final}</span></div>
+    <div class="small" style="margin-top:6px">Probabilidad del mes: <b>${pct(d.probabilidad)}</b>${d.focos_48h?` · 🔥 <b>${d.focos_48h}</b> foco(s) 48 h`:''}</div>
+    <ul>${[...d.motivos_alerta,...d.factores].slice(0,4).map(x=>`<li>${esc(x)}</li>`).join('')}</ul></div>`).join('')
+    :'<div class="card pad">No hay distritos con alerta en esta zona. 👍</div>';
+  document.querySelectorAll('.acard').forEach(c=>{c.onclick=()=>ficha(c.dataset.u);c.onkeydown=e=>{if(e.key==='Enter')ficha(c.dataset.u)}});
+}
+document.querySelectorAll('#af button').forEach(b=>b.onclick=()=>{filtroA=b.dataset.f;document.querySelectorAll('#af button').forEach(x=>x.setAttribute('aria-pressed',x===b));vistaAlertas()});
+
+// ---------- Reportes ----------
+function vistaReportes(){
+  const ds=distZona(), c={}; ds.forEach(d=>c[d.nivel_final]=(c[d.nivel_final]||0)+1);
+  document.getElementById('kpis').innerHTML=N.slice().reverse().map(n=>`<div class="card kpi" style="--c:${col(n)}"><b>${c[n]||0}</b><span>distritos · ${n}</span></div>`).join('');
+  document.getElementById('rows').innerHTML=ds.map(d=>`<tr class="clk" data-u="${d.ubigeo}"><td>${esc(d.distrito)}</td><td>${esc(d.provincia)}</td><td class="num">${pct(d.probabilidad)}</td><td>${d.nivel}</td><td><span class="chip ${d.nivel_final==='Medio'?'dk':''}" style="background:${col(d.nivel_final)}">${d.nivel_final}</span></td><td class="num">${d.focos_48h||''}</td></tr>`).join('');
+  document.querySelectorAll('#rows tr').forEach(t=>t.onclick=()=>ficha(t.dataset.u));
+}
+const ev=D.evaluacion, m=ev.metricas_prueba;
+document.getElementById('periodos').textContent=ev.version?`Evaluado año por año (${ev.periodos.prueba.replace(', año por año','')}): cada año se pronosticó con un modelo entrenado solo con los años anteriores. Alerta desde ${Math.round(ev.umbral_alerta*100)} %. Anticipación: ${ev.anticipacion}.`:`Entrenado con ${ev.periodos.entrenamiento}, calibrado con ${ev.periodos.validacion} y evaluado con ${ev.periodos.prueba} (años que el modelo no vio). Anticipación: ${ev.anticipacion}.`;
+const rowsM=[["AUC (0.5 = azar, 1 = perfecto)","auc",v=>v.toFixed(2)],["Incendios con alerta previa","deteccion_pct",v=>v+'%'],["Alertas sin incendio","falsas_alarmas_pct",v=>v+'%'],["Alertas emitidas","alertas_emitidas",v=>v],["Error de probabilidad (Brier)","brier",v=>v.toFixed(3)]];
+document.getElementById('metrics').innerHTML=`<thead><tr><th>Métrica</th><th class="num">IA</th><th class="num">Solo historial</th></tr></thead><tbody>`+rowsM.map(([t,k,f])=>`<tr><td>${t}</td><td class="num">${f(m[0][k])}</td><td class="num">${f(m[1][k])}</td></tr>`).join('')+'</tbody>';
+const imp={}; ev.importancia.forEach(i=>imp[i.descripcion]=(imp[i.descripcion]||0)+Math.max(0,i.importancia));
+const top=Object.entries(imp).sort((a,b)=>b[1]-a[1]).slice(0,6), mx=top[0]?top[0][1]||1:1;
+document.getElementById('imp').innerHTML=top.map(([d,v])=>`<span>${esc(d[0].toUpperCase()+d.slice(1))}</span><div class="bar" style="width:${Math.max(4,v/mx*100).toFixed(0)}%"></div>`).join('');
+document.getElementById('dl-csv').onclick=()=>{
+  const q=s=>`"${String(s).replace(/"/g,'""')}"`;
+  const lin=[['ubigeo','distrito','provincia','probabilidad','nivel_modelo','nivel_final','focos_48h','motivos','factores'].join(',')]
+    .concat(distZona().map(d=>[d.ubigeo,q(d.distrito),q(d.provincia),d.probabilidad,d.nivel,d.nivel_final,d.focos_48h,q(d.motivos_alerta.join(' | ')),q(d.factores.join(' | '))].join(',')));
+  const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob(['﻿'+lin.join('\n')],{type:'text/csv'}));
+  a.download=`nawpaq_pacha_${(zona||'puno').replace(/\s+/g,'_').toLowerCase()}_${hoy.toISOString().slice(0,10)}.csv`; a.click();
+};
+
+// ---------- Configuración ----------
+document.getElementById('reglas').innerHTML=`<ol style="padding-left:18px;margin:0;display:grid;gap:6px">
+  <li><b>Modelo de IA (mensual):</b> probabilidad de al menos un incendio en el distrito en ${esc(D.mes_pronostico)}. Bajo &lt;${pct(D.umbrales[0])} · Medio ${pct(D.umbrales[0])}–${pct(D.umbrales[1])} · Alto ${pct(D.umbrales[1])}–${pct(D.umbrales[2])} · Muy alto ≥${pct(D.umbrales[2])}.</li>
+  <li><b>Pronóstico del tiempo (7 días):</b> cada día suma puntos por humedad mínima &lt;${R.humedad_min[0]}% (+1) o &lt;${R.humedad_min[1]}% (+2), viento ≥${R.viento_max[0]} km/h (+1) o ≥${R.viento_max[1]} km/h (+2) y lluvia &lt;${R.lluvia_seca} mm (+1). Si en 3 días hay 2 o más días de peligro Alto/Extremo, el nivel sube un escalón.</li>
+  <li><b>Focos activos (NASA FIRMS):</b> si hay focos en las últimas 48 h, el distrito pasa al menos a Alto.</li></ol>
+  <p class="muted">Se emite alerta desde el nivel <b>${esc(D.nivel_alerta)}</b>. Las alertas son orientativas y deben validarse con autoridades y comunidades.</p>`;
+document.getElementById('fuentes').innerHTML=((D.fuentes&&D.fuentes.fuentes)||[]).concat(['Condiciones actuales y pronóstico: Open-Meteo (en vivo)','Mapa base: Esri World Imagery / OpenTopoMap']).map(f=>`<li>${esc(f)}</li>`).join('');
+function setLang(l){lang=l;store.set('lang',l);document.querySelectorAll('#seg-lang button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.l===l));
+  document.getElementById('leg-niveles').innerHTML=N.slice().reverse().map(n=>`<div class="lv"><i style="background:${col(n)}"></i>${n}${l==='qu'?` · ${D.nivel_qu[n]}`:''}</div>`).join('');render()}
+document.querySelectorAll('#seg-lang button').forEach(b=>b.onclick=()=>setLang(b.dataset.l));
+function setTheme(t){if(t)document.documentElement.dataset.theme=t;else delete document.documentElement.dataset.theme;store.set('theme',t);
+  document.querySelectorAll('#seg-theme button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.t===t));capaDist.setStyle(estilo)}
+document.querySelectorAll('#seg-theme button').forEach(b=>b.onclick=()=>setTheme(b.dataset.t));
+setTheme(store.get('theme')||'');
+document.querySelectorAll('#seg-base button').forEach(b=>b.onclick=()=>setBase(b.dataset.b));
+document.getElementById('refresh').onclick=()=>enVivo(true);
+
+// ---------- Navegación ----------
+const TIT={inicio:'Mapa de riesgo de incendios forestales',mapa:'Mapa de riesgo de incendios forestales',alertas:'Alertas de incendio',reportes:'Reportes',config:'Configuración'};
+function ir(v){vista=v;
+  document.querySelectorAll('.nav button').forEach(b=>{if(b.dataset.v===v)b.setAttribute('aria-current','page');else b.removeAttribute('aria-current')});
+  const home=v==='inicio'||v==='mapa';
+  document.getElementById('v-inicio').hidden=!home;
+  document.getElementById('v-alertas').hidden=v!=='alertas';
+  document.getElementById('v-reportes').hidden=v!=='reportes';
+  document.getElementById('v-config').hidden=v!=='config';
+  document.getElementById('right').style.display=v==='mapa'?'none':'';
+  document.getElementById('v-inicio').style.gridTemplateColumns=v==='mapa'?'1fr':'';
+  document.getElementById('map').classList.toggle('big',v==='mapa');
+  document.getElementById('titulo').textContent=TIT[v];
+  if(home) setTimeout(()=>map.invalidateSize(),50);
+  render();
+}
+document.querySelectorAll('.nav button').forEach(b=>b.onclick=()=>ir(b.dataset.v));
+
+function render(){
+  capaDist.setStyle(estilo);
+  if(sel&&capaPorU[sel]) capaPorU[sel].bringToFront();
+  const n=D.distritos.filter(conAlerta).length, cnt=document.getElementById('nav-cnt');
+  cnt.hidden=!n; cnt.textContent=n;
+  if(vista==='inicio'){alertaCard();zonas();condiciones()}
+  if(vista==='alertas')vistaAlertas();
+  if(vista==='reportes')vistaReportes();
+  document.getElementById('footer').textContent='ÑAWPAQ PACHA entrega estimaciones orientativas para priorizar vigilancia y prevención. No afirma que un incendio ocurrirá y no reemplaza el criterio de autoridades y comunidades.';
+}
+
+// ---------- Datos en vivo: Open-Meteo (condiciones actuales + 7 días) ----------
+async function enVivo(forzar){
+  const ds=D.distritos.filter(d=>d.centro), live=document.getElementById('st-live');
+  live.textContent='Actualizando tiempo en vivo…';
+  try{
+    for(let i=0;i<ds.length;i+=50){
+      const b=ds.slice(i,i+50);
+      const url='https://api.open-meteo.com/v1/forecast?timezone=America%2FLima&forecast_days=7'+
+        '&current=temperature_2m,relative_humidity_2m,wind_speed_10m'+
+        '&daily=temperature_2m_max,relative_humidity_2m_min,wind_speed_10m_max,precipitation_sum'+
+        '&latitude='+b.map(d=>d.centro[0]).join(',')+'&longitude='+b.map(d=>d.centro[1]).join(',');
+      const r=await fetch(url); if(!r.ok) throw new Error(r.status);
+      let js=await r.json(); if(!Array.isArray(js)) js=[js];
+      js.forEach((x,k)=>{const d=b[k]; actual[d.ubigeo]=x.current; const y=x.daily;
+        d.tiempo=y.time.map((f,j)=>({fecha:f,tmax:y.temperature_2m_max[j],hum_min:y.relative_humidity_2m_min[j],viento_max:y.wind_speed_10m_max[j],lluvia:y.precipitation_sum[j],
+          peligro:peligroDia(y.relative_humidity_2m_min[j],y.wind_speed_10m_max[j],y.precipitation_sum[j])}));
+        recalcular(d);});
+    }
+    live.textContent='Tiempo en vivo: '+new Date().toLocaleTimeString('es-PE',{hour:'2-digit',minute:'2-digit'});
+  }catch(e){live.textContent='Sin conexión al pronóstico en vivo; se muestran los datos del '+D.generado;}
+  D.distritos.forEach(d=>{if(!d.motivos_alerta)d.motivos_alerta=[]});
+  render();
+}
+
+D.distritos.forEach(d=>{d.nivel_final=d.nivel_final||d.nivel;d.motivos_alerta=d.motivos_alerta||[];d.focos_48h=d.focos_48h||0});
+encuadrar();
+// Enlaces directos: index.html#alertas · #reportes · #config · #mapa · #ficha=210101
+const h=decodeURIComponent(location.hash.slice(1));
+if(h.startsWith('ficha=')&&byU[h.slice(6)]){ir('inicio');ficha(h.slice(6))}
+else ir(TIT[h]?h:'inicio');
+enVivo();
+setInterval(enVivo,30*60*1000);   // refresca cada 30 min
+})();
+</script>
+</body>
+</html>

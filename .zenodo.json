@@ -1,0 +1,11 @@
+{
+  "title": "ÑAWPAQ PACHA: open-source one-month-ahead vegetation fire risk forecasting and bilingual alerts for the Peruvian Andes",
+  "upload_type": "software",
+  "description": "Open-source Python pipeline that downloads public satellite and climate data (NASA FIRMS, NASA POWER, MODIS, Copernicus DEM), forecasts one month ahead the probability of at least one active-fire detection in each of the 108 districts of Puno, Peru, and publishes risk levels, plain-language reasons and Spanish/Quechua recommendations in a static web dashboard.",
+  "creators": [
+    {"name": "Yanarico Huanca, Flor Melany", "affiliation": "Universidad Nacional del Altiplano, Puno, Peru"}
+  ],
+  "license": "MIT",
+  "keywords": ["wildfire risk", "early warning", "machine learning", "remote sensing", "Andes", "Quechua", "Peru"],
+  "language": "spa"
+}

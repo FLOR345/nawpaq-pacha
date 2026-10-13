@@ -1,0 +1,19 @@
+.venv/
+__pycache__/
+*.pyc
+.env
+data/raw/cache/
+# Datos y resultados generados (se recrean con: python main.py --datos-reales)
+data/processed/
+data/raw/*
+!data/raw/puno_distritos.geojson
+models/
+outputs/
+dashboard/datos_riesgo.js
+registro_indecopi/*.zip
+registro_indecopi/4b_listado_codigo_fuente.txt
+# Documentos personales y de envío (no publicar)
+registro_indecopi/
+registro_indecopi_v0.3/
+envio_softwarex/
+!data/raw/LICENCIA_LIMITES_DISTRITALES.txt
