@@ -4,7 +4,7 @@ title: "ÑAWPAQ PACHA: open-source one-month-ahead vegetation fire risk forecast
 version: 0.3.0
 date-released: 2026-10-13
 license: MIT
-repository-code: "https://github.com/USUARIO/nawpaq-pacha"
+repository-code: "https://github.com/FLOR345/nawpaq-pacha"
 authors:
   - family-names: "Yanarico Huanca"
     given-names: "Flor Melany"
