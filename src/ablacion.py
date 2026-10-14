@@ -5,7 +5,10 @@ Compara, con la MISMA evaluación año por año (config.ANIOS_PRUEBA):
   A. Referencia climatológica (solo historial del distrito en ese mes)
   B. v0.2: 17 variables, calibración con un solo año (el anterior al de prueba)
   C. 17 variables + calibración multianual combinada con la referencia
-  D. v0.3: 28 variables + calibración multianual combinada con la referencia
+  D. v0.3.0: Gradient Boosting, 28 variables + calibración multianual con la referencia
+  E. Regresión logística con las mismas 28 variables y la misma calibración
+  F. v0.3.1: Random Forest con las mismas 28 variables y la misma calibración (modelo actual)
+Así se ve qué aporta cada cambio y qué modelo base conviene usar.
 
 Uso:  python src/ablacion.py      (tarda unos minutos; no se usa en main.py)
 Salida: outputs/ablacion.json
@@ -16,19 +19,27 @@ import sys
 import numpy as np
 import pandas as pd
 from sklearn.linear_model import LogisticRegression
+from sklearn.pipeline import make_pipeline
+from sklearn.preprocessing import StandardScaler
 from sklearn.metrics import average_precision_score, brier_score_loss, roc_auc_score
 
 import config as C
-from entrenar_modelo import MESES_SECOS, _base, _logit, ajustar, probabilidad
+from entrenar_modelo import MESES_SECOS, _gradient_boosting, _logit, _random_forest, ajustar, probabilidad
 
 VARIABLES_V02 = C.VARIABLES_MODELO[:17]
+
+
+def regresion_logistica():
+    return make_pipeline(StandardScaler(), LogisticRegression(max_iter=2000, C=1.0))
+
+
 
 
 def v02_un_anio(tr, te):
     """Esquema de v0.2: entrena con años < T−1 y calibra (Platt) con el año T−1."""
     ult = tr.anio.max()
     a, b = tr[tr.anio < ult], tr[tr.anio == ult]
-    base = _base().fit(a[VARIABLES_V02], a.hubo_incendio)
+    base = _gradient_boosting().fit(a[VARIABLES_V02], a.hubo_incendio)
     platt = LogisticRegression().fit(_logit(base.predict_proba(b[VARIABLES_V02])[:, 1]).reshape(-1, 1), b.hubo_incendio)
     return platt.predict_proba(_logit(base.predict_proba(te[VARIABLES_V02])[:, 1]).reshape(-1, 1))[:, 1]
 
@@ -39,8 +50,13 @@ def main():
     modelos = {
         "A. Referencia climatológica": lambda tr, te: te.frec_hist_mes.to_numpy(),
         "B. v0.2 (17 variables, calibración 1 año)": v02_un_anio,
-        "C. 17 variables + calibración multianual": lambda tr, te: probabilidad(ajustar(tr, VARIABLES_V02), te),
-        "D. v0.3 (28 variables + calibración multianual)": lambda tr, te: probabilidad(ajustar(tr), te),
+        "C. 17 variables + calibración multianual": lambda tr, te: probabilidad(ajustar(tr, VARIABLES_V02, _gradient_boosting), te),
+        "D. v0.3.0: Gradient Boosting, 28 variables + calibración multianual":
+            lambda tr, te: probabilidad(ajustar(tr, crear_base=_gradient_boosting), te),
+        "E. Regresión logística (mismas variables y calibración)":
+            lambda tr, te: probabilidad(ajustar(tr, crear_base=regresion_logistica), te),
+        "F. v0.3.1: Random Forest (mismas variables y calibración)":
+            lambda tr, te: probabilidad(ajustar(tr, crear_base=_random_forest), te),
     }
     pred = {k: [] for k in modelos}
     ys, secos = [], []

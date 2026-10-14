@@ -2,11 +2,11 @@
 ÑAWPAQ PACHA — Entrenamiento y evaluación del modelo de IA (v0.3).
 
 Modelo:
- 1. Gradient Boosting (árboles de decisión potenciados) con las variables de
-    config.VARIABLES_MODELO.
+ 1. Random Forest (por defecto) o Gradient Boosting, según config.MODELO_BASE,
+    con las variables de config.VARIABLES_MODELO.
  2. Calibración y combinación: con predicciones FUERA DE MUESTRA (se deja un
     año fuera cada vez) se ajusta una regresión logística que combina la
-    puntuación del Gradient Boosting con la referencia climatológica
+    puntuación del modelo base con la referencia climatológica
     (frecuencia histórica de incendio del distrito en ese mes). Así la
     probabilidad final queda calibrada con varios años, secos y húmedos, y no
     con uno solo como en v0.2.
@@ -21,7 +21,7 @@ import json
 import joblib
 import numpy as np
 import pandas as pd
-from sklearn.ensemble import HistGradientBoostingClassifier
+from sklearn.ensemble import HistGradientBoostingClassifier, RandomForestClassifier
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import average_precision_score, brier_score_loss, roc_auc_score
 
@@ -36,26 +36,38 @@ def _logit(p):
     return np.log(p / (1 - p))
 
 
-def _base():
+def _gradient_boosting():
     return HistGradientBoostingClassifier(
         learning_rate=0.05, max_iter=300, max_leaf_nodes=15, min_samples_leaf=40,
         l2_regularization=1.0, random_state=C.SEMILLA)
+
+
+def _random_forest():
+    return RandomForestClassifier(n_estimators=300, min_samples_leaf=20, max_features="sqrt",
+                                  n_jobs=-1, random_state=C.SEMILLA)
+
+
+def _base():
+    """Clasificador base según config.MODELO_BASE."""
+    return _random_forest() if C.MODELO_BASE == "random_forest" else _gradient_boosting()
 
 
 def _entradas_calibrador(p_base, df):
     return np.c_[_logit(p_base), _logit(df.frec_hist_mes.to_numpy())]
 
 
-def ajustar(tr, X=None):
-    """Entrena el modelo completo (base + calibrador) con la tabla tr."""
+def ajustar(tr, X=None, crear_base=None):
+    """Entrena el modelo completo (base + calibrador) con la tabla tr.
+    crear_base: función que devuelve un clasificador nuevo (por defecto, Gradient Boosting)."""
     X = X or C.VARIABLES_MODELO
+    crear_base = crear_base or _base
     y = tr.hubo_incendio.to_numpy()
     fuera = np.zeros(len(tr))
     for anio in tr.anio.unique():                       # un año fuera cada vez
         k = (tr.anio == anio).to_numpy()
-        fuera[k] = _base().fit(tr.loc[~k, X], y[~k]).predict_proba(tr.loc[k, X])[:, 1]
+        fuera[k] = crear_base().fit(tr.loc[~k, X], y[~k]).predict_proba(tr.loc[k, X])[:, 1]
     calibrador = LogisticRegression().fit(_entradas_calibrador(fuera, tr), y)
-    base = _base().fit(tr[X], y)
+    base = crear_base().fit(tr[X], y)
     return {"base": base, "calibrador": calibrador, "variables": X}
 
 
@@ -167,7 +179,7 @@ def entrenar():
     joblib.dump(paquete, C.MODELO_ARCHIVO)
 
     resumen = {
-        "version": "0.3",
+        "version": "0.3.1",
         "periodos": {"entrenamiento": f"{hist.anio.min()} hasta el año anterior a cada prueba",
                      "validacion": "calibración fuera de muestra (un año fuera cada vez)",
                      "prueba": f"{C.ANIOS_PRUEBA[0]}–{C.ANIOS_PRUEBA[-1]}, año por año"},
