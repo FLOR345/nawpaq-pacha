@@ -127,6 +127,7 @@ see `data/raw/LICENCIA_LIMITES_DISTRITALES.txt`).
 The workflow `.github/workflows/pronostico.yml` runs on the 3rd of every month (or on
 demand from the *Actions* tab): it runs the tests, downloads the new data, retrains,
 evaluates and forecasts, and publishes the dashboard and the CSV outputs to GitHub Pages.
+Every forecast is also archived, by month, in the [`pronosticos`](https://github.com/FLOR345/nawpaq-pacha/tree/pronosticos) branch.
 To enable it in a fork: add the secret `FIRMS_MAP_KEY` (*Settings → Secrets and variables →
 Actions*) and set *Settings → Pages → Source* to *GitHub Actions*.
 

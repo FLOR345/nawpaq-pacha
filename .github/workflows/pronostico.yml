@@ -9,7 +9,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
   pages: write
   id-token: write
 
@@ -52,6 +52,22 @@ jobs:
           mkdir -p _site/datos
           cp dashboard/index.html dashboard/datos_riesgo.js _site/
           cp outputs/*.csv outputs/evaluacion_modelo.json _site/datos/
+
+      - name: Archivar el pronóstico en la rama "pronosticos"
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          MES=$(python -c "import json;t=open('dashboard/datos_riesgo.js',encoding='utf-8').read();print(json.loads(t[t.index('{'):].strip().rstrip(';'))['generado'][:7])")
+          URL="https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
+          if git clone -q --depth 1 --branch pronosticos "$URL" /tmp/archivo; then :; else
+            git init -q /tmp/archivo && git -C /tmp/archivo checkout -q -b pronosticos && git -C /tmp/archivo remote add origin "$URL"; fi
+          rm -rf "/tmp/archivo/$MES" && mkdir -p "/tmp/archivo/$MES"
+          cp dashboard/datos_riesgo.js outputs/*.csv outputs/evaluacion_modelo.json "/tmp/archivo/$MES/"
+          cd /tmp/archivo
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -qm "Pronóstico generado en $MES" && git push -q origin pronosticos || echo "Sin cambios"
 
       - uses: actions/upload-pages-artifact@v3
         with:

@@ -101,6 +101,12 @@ MODIS MOD13Q1 y MCD12Q1 (ORNL DAAC) · Relieve: Copernicus DEM vía Open-Meteo �
 Comunidades y áreas protegidas: © OpenStreetMap · Pronóstico: Open-Meteo.
 Límites distritales derivados de *juaneladio/peru-geojson* (base INEI, MPL 2.0).
 
+## Pronóstico mensual automático
+
+El flujo `.github/workflows/pronostico.yml` se ejecuta el día 3 de cada mes (o a mano desde *Actions*):
+prueba, descarga, reentrena, evalúa, pronostica y publica el panel en GitHub Pages. Cada pronóstico
+queda archivado por mes en la rama [`pronosticos`](https://github.com/FLOR345/nawpaq-pacha/tree/pronosticos).
+
 ## Licencia
 
 Código: MIT. Límites distritales: MPL 2.0. Los datos de entrada pertenecen a sus proveedores.
