@@ -495,7 +495,7 @@ function spark(u){
 }
 function ficha(u){
   const q=lang==='qu', dlg=document.getElementById('dlg');
-  const draft=q&&!D.quechua_validado?'<div class="draft">Borrador en quechua · falta validación con hablantes locales</div>':'';
+  const draft='';
   if(!u){
     const ds=distZona(), al=ds.filter(conAlerta), nv=al.length?al.reduce((m,d)=>N.indexOf(d.nivel_final)>N.indexOf(m)?d.nivel_final:m,'Bajo'):'Medio';
     document.getElementById('dlg-p').textContent=zona?'Provincia':'Región';
