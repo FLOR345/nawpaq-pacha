@@ -179,7 +179,7 @@ def entrenar():
     joblib.dump(paquete, C.MODELO_ARCHIVO)
 
     resumen = {
-        "version": "0.3.1",
+        "version": "0.3",
         "periodos": {"entrenamiento": f"{hist.anio.min()} hasta el año anterior a cada prueba",
                      "validacion": "calibración fuera de muestra (un año fuera cada vez)",
                      "prueba": f"{C.ANIOS_PRUEBA[0]}–{C.ANIOS_PRUEBA[-1]}, año por año"},

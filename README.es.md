@@ -32,9 +32,9 @@ Cada año de 2020 a 2025 se pronosticó con un modelo entrenado **solo con los a
 |---|---|---|---|---|
 | Referencia climatológica (solo historial del distrito) | 0,770 | 0,708 | 0,353 | 0,0773 |
 | v0.2: 17 variables, calibración con un año | 0,775 | 0,653 | 0,304 | 0,0811 |
-| Gradient Boosting, 28 variables, calibración multianual (v0.3.0) | 0,830 | 0,719 | 0,359 | 0,0750 |
+| Gradient Boosting, 28 variables, calibración multianual | 0,830 | 0,719 | 0,359 | 0,0750 |
 | Regresión logística, mismas variables y calibración | 0,828 | 0,717 | 0,359 | 0,0748 |
-| **Random Forest, mismas variables y calibración (por defecto, v0.3.1)** | **0,842** | **0,737** | **0,386** | **0,0731** |
+| **Random Forest, mismas variables y calibración (modelo por defecto)** | **0,842** | **0,737** | **0,386** | **0,0731** |
 
 El modelo por defecto supera a la referencia en los seis años de prueba (diferencia de AUC
 0,072; IC 95 % bootstrap 0,060–0,085; Brier skill score 0,056). Con alerta desde 15 % de

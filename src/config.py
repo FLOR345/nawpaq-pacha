@@ -113,7 +113,7 @@ COLORES_NIVEL = {"Bajo": "#2e9e5b", "Medio": "#e8c62e", "Alto": "#ee7d1f", "Muy 
 SEMILLA = 42
 
 # --- Modelo base ----------------------------------------------------------------
-# "random_forest" (por defecto desde v0.3.1) o "gradient_boosting" (v0.3.0).
+# "random_forest" (por defecto) o "gradient_boosting".
 # En la comparación 2020–2025 (src/ablacion.py) Random Forest obtuvo AUC 0.842,
 # Gradient Boosting 0.830 y regresión logística 0.828, con la misma calibración.
 MODELO_BASE = "random_forest"

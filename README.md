@@ -33,9 +33,9 @@ Each year from 2020 to 2025 was forecast by a model trained **only on earlier ye
 |---|---|---|---|---|
 | Climatological baseline (district fire history only) | 0.770 | 0.708 | 0.353 | 0.0773 |
 | v0.2: 17 predictors, calibrated on one year | 0.775 | 0.653 | 0.304 | 0.0811 |
-| Gradient boosting, 28 predictors, multi-year calibration (v0.3.0) | 0.830 | 0.719 | 0.359 | 0.0750 |
+| Gradient boosting, 28 predictors, multi-year calibration | 0.830 | 0.719 | 0.359 | 0.0750 |
 | Logistic regression, same predictors and calibration | 0.828 | 0.717 | 0.359 | 0.0748 |
-| **Random forest, same predictors and calibration (default, v0.3.1)** | **0.842** | **0.737** | **0.386** | **0.0731** |
+| **Random forest, same predictors and calibration (default model)** | **0.842** | **0.737** | **0.386** | **0.0731** |
 
 The default model beats the baseline in each of the six test years (AUC difference
 0.072, 95 % bootstrap CI 0.060–0.085; Brier skill score 0.056). With alerts from a 15 %

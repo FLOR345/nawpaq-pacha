@@ -5,9 +5,9 @@ Compara, con la MISMA evaluación año por año (config.ANIOS_PRUEBA):
   A. Referencia climatológica (solo historial del distrito en ese mes)
   B. v0.2: 17 variables, calibración con un solo año (el anterior al de prueba)
   C. 17 variables + calibración multianual combinada con la referencia
-  D. v0.3.0: Gradient Boosting, 28 variables + calibración multianual con la referencia
+  D. Gradient Boosting, 28 variables + calibración multianual con la referencia
   E. Regresión logística con las mismas 28 variables y la misma calibración
-  F. v0.3.1: Random Forest con las mismas 28 variables y la misma calibración (modelo actual)
+  F. Random Forest con las mismas 28 variables y la misma calibración (modelo actual)
 Así se ve qué aporta cada cambio y qué modelo base conviene usar.
 
 Uso:  python src/ablacion.py      (tarda unos minutos; no se usa en main.py)
@@ -51,11 +51,11 @@ def main():
         "A. Referencia climatológica": lambda tr, te: te.frec_hist_mes.to_numpy(),
         "B. v0.2 (17 variables, calibración 1 año)": v02_un_anio,
         "C. 17 variables + calibración multianual": lambda tr, te: probabilidad(ajustar(tr, VARIABLES_V02, _gradient_boosting), te),
-        "D. v0.3.0: Gradient Boosting, 28 variables + calibración multianual":
+        "D. Gradient Boosting, 28 variables + calibración multianual":
             lambda tr, te: probabilidad(ajustar(tr, crear_base=_gradient_boosting), te),
         "E. Regresión logística (mismas variables y calibración)":
             lambda tr, te: probabilidad(ajustar(tr, crear_base=regresion_logistica), te),
-        "F. v0.3.1: Random Forest (mismas variables y calibración)":
+        "F. Random Forest (modelo por defecto; mismas variables y calibración)":
             lambda tr, te: probabilidad(ajustar(tr, crear_base=_random_forest), te),
     }
     pred = {k: [] for k in modelos}
