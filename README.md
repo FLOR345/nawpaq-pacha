@@ -1,5 +1,7 @@
 # ÑAWPAQ PACHA — v0.3
 
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.23355818.svg)](https://doi.org/10.5281/zenodo.23355818)
+
 Inteligencia artificial para anticipar y prevenir incendios de vegetación en los Andes.
 Zona piloto: **región Puno, por distritos** (108 distritos con límite disponible).
 
