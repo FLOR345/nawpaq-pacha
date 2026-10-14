@@ -156,22 +156,3 @@ INEI (población) e INDECI-SINPAD para validar con emergencias reportadas.
 
 Límites distritales: GeoJSON público basado en INEI (repositorio *juaneladio/peru-geojson*).
 Para uso oficial conviene reemplazarlo por los límites vigentes del INEI.
-
-## Propiedad intelectual (registro en INDECOPI)
-
-- El código se registra como **obra de software** en la Dirección de Derecho de Autor
-  (no como patente). Necesitarás: nombre y versión, código fuente, descripción y manual.
-- Para que la autoría sea tuya, documenta tus decisiones y cambios: lleva un registro
-  (por ejemplo, con Git) de qué modificaste, por qué, y qué partes diseñaste tú.
-- El nombre y logo "ÑAWPAQ PACHA" se protegen aparte como **marca**.
-- Antes de registrar, revisa las bases de #AIforImpact2026 y el reglamento de
-  propiedad intelectual de la UNA Puno.
-
-## Limitaciones conocidas
-
-- Clima y NDVI se toman en un punto representativo de cada distrito, no el promedio de toda su área.
-- La regla de corto plazo (tiempo + focos activos) es orientativa y no está entrenada.
-- Los focos MODIS no detectan muchas quemas pequeñas; algunos meses "sin incendio" pueden haber tenido quemas.
-- Los textos en quechua son borrador y deben validarse con hablantes locales.
-- Amantaní no tiene límite en el mapa base usado.
-- Las alertas son orientativas y deben revisarse con autoridades y comunidades.
