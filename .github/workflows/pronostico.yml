@@ -1,0 +1,68 @@
+# ÑAWPAQ PACHA — pronóstico mensual automático y panel público (GitHub Pages)
+# Se ejecuta el día 3 de cada mes (y a mano desde la pestaña "Actions").
+# Necesita el secreto FIRMS_MAP_KEY (Settings → Secrets and variables → Actions).
+name: Pronóstico mensual
+
+on:
+  schedule:
+    - cron: "0 12 3 * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  pronostico:
+    runs-on: ubuntu-latest
+    timeout-minutes: 240
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Instalar dependencias
+        run: pip install -r requirements.txt -r requirements-dev.txt
+
+      - name: Pruebas automáticas
+        run: python -m pytest -q
+
+      - name: Recuperar datos descargados en ejecuciones anteriores
+        uses: actions/cache@v4
+        with:
+          path: data/raw/cache
+          key: datos-${{ github.run_id }}
+          restore-keys: datos-
+
+      - name: Descargar datos, entrenar y pronosticar
+        env:
+          FIRMS_MAP_KEY: ${{ secrets.FIRMS_MAP_KEY }}
+        run: python main.py --datos-reales
+
+      - name: Preparar el sitio web
+        run: |
+          mkdir -p _site/datos
+          cp dashboard/index.html dashboard/datos_riesgo.js _site/
+          cp outputs/*.csv outputs/evaluacion_modelo.json _site/datos/
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+
+  publicar:
+    needs: pronostico
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

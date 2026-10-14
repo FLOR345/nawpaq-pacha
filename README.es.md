@@ -1,11 +1,15 @@
 # ÑAWPAQ PACHA
 
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.23355818.svg)](https://doi.org/10.5281/zenodo.23355818)
+[![Pronóstico mensual](https://github.com/FLOR345/nawpaq-pacha/actions/workflows/pronostico.yml/badge.svg)](https://github.com/FLOR345/nawpaq-pacha/actions/workflows/pronostico.yml)
+
 
 **Pronóstico a un mes del riesgo de incendios de vegetación y alertas en español y quechua para los Andes peruanos.**
 Zona piloto: **los 108 distritos de la región Puno, Perú**.
 
 *Read in English: [README.md](README.md)*
+
+**Demo en línea (se actualiza sola cada mes):** https://flor345.github.io/nawpaq-pacha/
 
 ÑAWPAQ PACHA («tiempo de antes» en quechua) es un programa abierto en Python que:
 

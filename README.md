@@ -2,11 +2,15 @@
 
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.23355818.svg)](https://doi.org/10.5281/zenodo.23355818)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+[![Pronóstico mensual](https://github.com/FLOR345/nawpaq-pacha/actions/workflows/pronostico.yml/badge.svg)](https://github.com/FLOR345/nawpaq-pacha/actions/workflows/pronostico.yml)
+
 
 **One-month-ahead vegetation fire risk forecasting and bilingual (Spanish/Quechua) alerts for the Peruvian Andes.**
 Pilot area: the **108 districts of the Puno region, Peru**.
 
 *Leer en español: [README.es.md](README.es.md)*
+
+**Live demo (updated automatically every month):** https://flor345.github.io/nawpaq-pacha/
 
 ÑAWPAQ PACHA ("the time before" in Quechua) is an open-source Python pipeline that:
 
@@ -117,6 +121,14 @@ and adjust the bounding box `BBOX` in `src/descargar_datos_reales.py`.
 
 District boundaries are derived from *juaneladio/peru-geojson* (INEI-based, MPL 2.0;
 see `data/raw/LICENCIA_LIMITES_DISTRITALES.txt`).
+
+## Automatic monthly forecast
+
+The workflow `.github/workflows/pronostico.yml` runs on the 3rd of every month (or on
+demand from the *Actions* tab): it runs the tests, downloads the new data, retrains,
+evaluates and forecasts, and publishes the dashboard and the CSV outputs to GitHub Pages.
+To enable it in a fork: add the secret `FIRMS_MAP_KEY` (*Settings → Secrets and variables →
+Actions*) and set *Settings → Pages → Source* to *GitHub Actions*.
 
 ## Citation
 
