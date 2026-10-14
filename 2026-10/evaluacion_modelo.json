@@ -1,0 +1,304 @@
+{
+  "version": "0.3",
+  "periodos": {
+    "entrenamiento": "2017 hasta el año anterior a cada prueba",
+    "validacion": "calibración fuera de muestra (un año fuera cada vez)",
+    "prueba": "2020–2025, año por año"
+  },
+  "anticipacion": "1 mes (usa solo datos hasta el mes anterior)",
+  "umbral_alerta": 0.15,
+  "metricas_prueba": [
+    {
+      "modelo": "ÑAWPAQ PACHA (IA)",
+      "auc": 0.842,
+      "pr_auc": 0.386,
+      "brier": 0.0731,
+      "deteccion_pct": 70.4,
+      "falsas_alarmas_pct": 72.7,
+      "alertas_emitidas": 1957,
+      "meses_con_incendio": 758,
+      "auc_epoca_seca": 0.737
+    },
+    {
+      "modelo": "Referencia: solo historial",
+      "auc": 0.77,
+      "pr_auc": 0.353,
+      "brier": 0.0773,
+      "deteccion_pct": 60.6,
+      "falsas_alarmas_pct": 72.6,
+      "alertas_emitidas": 1674,
+      "meses_con_incendio": 758,
+      "auc_epoca_seca": 0.708
+    }
+  ],
+  "intervalos_95": {
+    "auc_ia": [
+      0.828,
+      0.855
+    ],
+    "diferencia_auc": [
+      0.06,
+      0.085
+    ],
+    "brier_skill_score": [
+      0.035,
+      0.076
+    ]
+  },
+  "brier_skill_score": 0.056,
+  "por_anio": [
+    {
+      "anio": 2020,
+      "meses_con_incendio": 205,
+      "auc_ia": 0.847,
+      "auc_referencia": 0.744
+    },
+    {
+      "anio": 2021,
+      "meses_con_incendio": 90,
+      "auc_ia": 0.834,
+      "auc_referencia": 0.771
+    },
+    {
+      "anio": 2022,
+      "meses_con_incendio": 204,
+      "auc_ia": 0.83,
+      "auc_referencia": 0.729
+    },
+    {
+      "anio": 2023,
+      "meses_con_incendio": 82,
+      "auc_ia": 0.911,
+      "auc_referencia": 0.867
+    },
+    {
+      "anio": 2024,
+      "meses_con_incendio": 104,
+      "auc_ia": 0.876,
+      "auc_referencia": 0.852
+    },
+    {
+      "anio": 2025,
+      "meses_con_incendio": 73,
+      "auc_ia": 0.85,
+      "auc_referencia": 0.812
+    }
+  ],
+  "umbrales": [
+    {
+      "umbral": 0.05,
+      "ia": {
+        "modelo": "ia",
+        "auc": 0.842,
+        "pr_auc": 0.386,
+        "brier": 0.0731,
+        "deteccion_pct": 93.3,
+        "falsas_alarmas_pct": 81.7,
+        "alertas_emitidas": 3868,
+        "meses_con_incendio": 758
+      },
+      "referencia": {
+        "modelo": "ref",
+        "auc": 0.77,
+        "pr_auc": 0.353,
+        "brier": 0.0773,
+        "deteccion_pct": 73.2,
+        "falsas_alarmas_pct": 78.2,
+        "alertas_emitidas": 2543,
+        "meses_con_incendio": 758
+      }
+    },
+    {
+      "umbral": 0.1,
+      "ia": {
+        "modelo": "ia",
+        "auc": 0.842,
+        "pr_auc": 0.386,
+        "brier": 0.0731,
+        "deteccion_pct": 79.2,
+        "falsas_alarmas_pct": 77.1,
+        "alertas_emitidas": 2619,
+        "meses_con_incendio": 758
+      },
+      "referencia": {
+        "modelo": "ref",
+        "auc": 0.77,
+        "pr_auc": 0.353,
+        "brier": 0.0773,
+        "deteccion_pct": 73.2,
+        "falsas_alarmas_pct": 78.2,
+        "alertas_emitidas": 2543,
+        "meses_con_incendio": 758
+      }
+    },
+    {
+      "umbral": 0.15,
+      "ia": {
+        "modelo": "ia",
+        "auc": 0.842,
+        "pr_auc": 0.386,
+        "brier": 0.0731,
+        "deteccion_pct": 70.4,
+        "falsas_alarmas_pct": 72.7,
+        "alertas_emitidas": 1957,
+        "meses_con_incendio": 758
+      },
+      "referencia": {
+        "modelo": "ref",
+        "auc": 0.77,
+        "pr_auc": 0.353,
+        "brier": 0.0773,
+        "deteccion_pct": 60.6,
+        "falsas_alarmas_pct": 72.6,
+        "alertas_emitidas": 1674,
+        "meses_con_incendio": 758
+      }
+    },
+    {
+      "umbral": 0.2,
+      "ia": {
+        "modelo": "ia",
+        "auc": 0.842,
+        "pr_auc": 0.386,
+        "brier": 0.0731,
+        "deteccion_pct": 61.6,
+        "falsas_alarmas_pct": 68.1,
+        "alertas_emitidas": 1462,
+        "meses_con_incendio": 758
+      },
+      "referencia": {
+        "modelo": "ref",
+        "auc": 0.77,
+        "pr_auc": 0.353,
+        "brier": 0.0773,
+        "deteccion_pct": 58.4,
+        "falsas_alarmas_pct": 69.9,
+        "alertas_emitidas": 1472,
+        "meses_con_incendio": 758
+      }
+    },
+    {
+      "umbral": 0.3,
+      "ia": {
+        "modelo": "ia",
+        "auc": 0.842,
+        "pr_auc": 0.386,
+        "brier": 0.0731,
+        "deteccion_pct": 38.4,
+        "falsas_alarmas_pct": 60.0,
+        "alertas_emitidas": 728,
+        "meses_con_incendio": 758
+      },
+      "referencia": {
+        "modelo": "ref",
+        "auc": 0.77,
+        "pr_auc": 0.353,
+        "brier": 0.0773,
+        "deteccion_pct": 43.5,
+        "falsas_alarmas_pct": 62.2,
+        "alertas_emitidas": 872,
+        "meses_con_incendio": 758
+      }
+    }
+  ],
+  "calibracion": [
+    {
+      "rango": "(0.0, 0.05]",
+      "n": 3836,
+      "observado": 0.013,
+      "predicho": 0.018
+    },
+    {
+      "rango": "(0.1, 0.2]",
+      "n": 1157,
+      "observado": 0.115,
+      "predicho": 0.145
+    },
+    {
+      "rango": "(0.05, 0.1]",
+      "n": 1249,
+      "observado": 0.086,
+      "predicho": 0.072
+    },
+    {
+      "rango": "(0.2, 0.3]",
+      "n": 734,
+      "observado": 0.24,
+      "predicho": 0.245
+    },
+    {
+      "rango": "(0.3, 0.5]",
+      "n": 549,
+      "observado": 0.333,
+      "predicho": 0.379
+    },
+    {
+      "rango": "(0.5, 1.0]",
+      "n": 179,
+      "observado": 0.603,
+      "predicho": 0.596
+    }
+  ],
+  "importancia": [
+    {
+      "variable": "frec_hist_mes",
+      "importancia": 0.0735,
+      "descripcion": "historial de incendios en este mes"
+    },
+    {
+      "variable": "mes_sin",
+      "importancia": 0.0268,
+      "descripcion": "época del año"
+    },
+    {
+      "variable": "focos_12m",
+      "importancia": 0.01,
+      "descripcion": "incendios en los últimos 12 meses"
+    },
+    {
+      "variable": "dias_secos_lag1",
+      "importancia": 0.0061,
+      "descripcion": "días sin lluvia del último mes"
+    },
+    {
+      "variable": "focos_lag1",
+      "importancia": 0.0054,
+      "descripcion": "focos de calor del último mes"
+    },
+    {
+      "variable": "pendiente_pct",
+      "importancia": 0.0048,
+      "descripcion": "pendiente del terreno"
+    },
+    {
+      "variable": "precip_3m",
+      "importancia": 0.0039,
+      "descripcion": "lluvia de los últimos 3 meses"
+    },
+    {
+      "variable": "precip_lag1",
+      "importancia": 0.0036,
+      "descripcion": "lluvia del último mes"
+    },
+    {
+      "variable": "racha_seca_lag1",
+      "importancia": 0.0022,
+      "descripcion": "racha seca más larga del último mes"
+    },
+    {
+      "variable": "focos_mismo_mes_ant",
+      "importancia": 0.002,
+      "descripcion": "focos en este mes del año pasado"
+    },
+    {
+      "variable": "pct_agricola",
+      "importancia": 0.0019,
+      "descripcion": "área agrícola"
+    },
+    {
+      "variable": "vec_focos_lag1",
+      "importancia": 0.0017,
+      "descripcion": "focos en distritos vecinos el último mes"
+    }
+  ]
+}
