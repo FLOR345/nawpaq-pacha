@@ -1,0 +1,3 @@
+# Solo para las fuentes NASA opcionales (python main.py --nasa)
+rasterio>=1.3
+requests>=2.31

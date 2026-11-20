@@ -4,6 +4,7 @@
 Aquí se definen rutas, variables del modelo y umbrales de riesgo.
 Si cambias de zona piloto o agregas variables, este es el primer archivo que se edita.
 """
+import os
 from pathlib import Path
 
 # --- Rutas -------------------------------------------------------------------
@@ -55,6 +56,33 @@ VARIABLES_MODELO = [
     # v0.3: fuego en los distritos vecinos y rezagos propios adicionales
     "vec_focos_lag1", "vec_focos_12m", "focos_lag2", "focos_mismo_mes_ant",
 ]
+# --- v0.4: fuentes NASA opcionales (src/fuentes_nasa.py, python main.py --nasa) ----
+# Se agregan al modelo solo si USAR_VARIABLES_NASA = True. Déjalo en False hasta que
+# la ablación (python main.py --ablacion) muestre que mejoran la evaluación 2020–2025.
+NASA_MENSUAL = DATA_RAW / "nasa_mensual.csv"
+NASA_ANUAL = DATA_RAW / "nasa_anual.csv"
+VARIABLES_NASA = [
+    "ndvi_area_lag1", "anom_ndvi_area_lag1",          # NDVI promedio del distrito (MOD13A2 1 km)
+    "lst_lag1", "anom_lst_lag1",                      # temperatura de superficie de día (MOD11A2)
+    "humedad_suelo_lag1", "anom_humedad_suelo_lag1",  # humedad del suelo (SMAP 9 km)
+    "quemado_lag1", "quemado_12m",                    # % del distrito quemado (MCD64A1)
+    "focos_viirs_lag1", "focos_viirs_12m",            # focos VIIRS 375 m
+    "pct_pastizal_anual", "pct_agricola_anual",       # cobertura del AÑO ANTERIOR (MCD12Q1)
+]
+USAR_VARIABLES_NASA = os.environ.get("NAWPAQ_VARIABLES_NASA", "0") == "1"
+
+# Qué cuenta como "hubo incendio" en el distrito-mes (variable a pronosticar):
+#   "modis"        ≥ 1 foco MODIS 1 km (confianza ≥ 30) — v0.3, por defecto
+#   "viirs"        ≥ 1 foco VIIRS 375 m (confianza nominal o alta)
+#   "modis_viirs"  ≥ 1 foco de cualquiera de los dos
+#   "area_quemada" área quemada MCD64A1 > 0 en el distrito
+#   "modis_alta"   ≥ 1 foco MODIS de confianza alta (≥ 80), solo para sensibilidad
+ETIQUETAS = ["modis", "viirs", "modis_viirs", "area_quemada", "modis_alta"]
+ETIQUETA = os.environ.get("NAWPAQ_ETIQUETA", "modis")
+
+if USAR_VARIABLES_NASA:
+    VARIABLES_MODELO = VARIABLES_MODELO + VARIABLES_NASA
+
 # Periodo de referencia para los percentiles de los indicadores diarios
 # (solo años anteriores a la primera evaluación, para no filtrar información).
 ANIO_REF_FIN = 2019
@@ -87,6 +115,18 @@ NOMBRES_LEGIBLES = {
     "vec_focos_12m": "focos en distritos vecinos en 12 meses",
     "focos_lag2": "focos de calor de hace dos meses",
     "focos_mismo_mes_ant": "focos en este mes del año pasado",
+    "ndvi_area_lag1": "estado de la vegetación en todo el distrito",
+    "anom_ndvi_area_lag1": "vegetación del distrito más seca de lo normal",
+    "lst_lag1": "temperatura del suelo de día",
+    "anom_lst_lag1": "suelo más caliente de lo normal",
+    "humedad_suelo_lag1": "humedad del suelo",
+    "anom_humedad_suelo_lag1": "suelo más seco de lo normal",
+    "quemado_lag1": "área quemada el último mes",
+    "quemado_12m": "área quemada en 12 meses",
+    "focos_viirs_lag1": "focos VIIRS del último mes",
+    "focos_viirs_12m": "focos VIIRS en 12 meses",
+    "pct_pastizal_anual": "cobertura de pastizales (año anterior)",
+    "pct_agricola_anual": "área agrícola (año anterior)",
 }
 
 # --- Validación temporal (nunca se mezclan años) -----------------------------

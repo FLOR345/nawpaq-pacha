@@ -4,6 +4,8 @@
     python main.py --datos-reales  # descarga/actualiza datos reales y ejecuta todo
     python main.py                 # usa los datos ya descargados en data/raw/
     python main.py --ablacion      # además, compara v0.2 vs v0.3 (outputs/ablacion.json)
+    python main.py --nasa          # además, descarga fuentes NASA opcionales (AppEEARS, SMAP,
+                                   # VIIRS; ver src/fuentes_nasa.py) antes de preparar las variables
 
 Pasos: datos → variables → modelo de IA → pronóstico + alertas → panel web.
 """
@@ -25,6 +27,10 @@ if __name__ == "__main__":
     if "--datos-reales" in sys.argv or not C.PANEL_MENSUAL.exists():
         from descargar_datos_reales import descargar
         descargar()
+        print()
+    if "--nasa" in sys.argv:
+        from fuentes_nasa import descargar_nasa
+        descargar_nasa()
         print()
     preparar()
     print()

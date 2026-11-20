@@ -50,7 +50,7 @@ jobs:
       - name: Preparar el sitio web
         run: |
           mkdir -p _site/datos
-          cp dashboard/index.html dashboard/datos_riesgo.js _site/
+          cp -r dashboard/index.html dashboard/datos_riesgo.js dashboard/lib _site/
           cp outputs/*.csv outputs/evaluacion_modelo.json _site/datos/
 
       - name: Archivar el pronóstico en la rama "pronosticos"

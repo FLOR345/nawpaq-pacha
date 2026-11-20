@@ -97,39 +97,81 @@ def metricas(y, prob, nombre, umbral=None):
         "pr_auc": round(average_precision_score(y, prob), 3),
         "brier": round(brier_score_loss(y, prob), 4),
         "deteccion_pct": round(100 * vp / max(int(y.sum()), 1), 1),   # meses con incendio que tuvieron alerta
-        "falsas_alarmas_pct": round(100 * fp / max(vp + fp, 1), 1),   # alertas sin incendio
+        "falsas_alarmas_pct": round(100 * fp / max(vp + fp, 1), 1),   # alertas sin incendio (1 − precisión)
+        "tasa_falsas_alarmas_pct": round(100 * fp / max(int((y == 0).sum()), 1), 1),  # meses sin incendio con alerta
+        "pct_alertados": round(100 * float(alerta.mean()), 1),
         "alertas_emitidas": int(alerta.sum()),
         "meses_con_incendio": int(y.sum()),
     }
 
 
-def intervalos_bootstrap(y, p_ia, p_ref, n=1000):
+def intervalos_bootstrap(y, p_ia, p_ref, grupos=None, n=1000):
+    """IC 95 % por percentiles. Con `grupos` (ubigeo) es un bootstrap POR BLOQUES de distrito:
+    se remuestrean distritos completos con todos sus meses, porque los meses de un mismo
+    distrito no son independientes. Sin `grupos`, remuestrea distrito-meses sueltos."""
     rng = np.random.default_rng(C.SEMILLA)
+    if grupos is not None:
+        codigos, inv = np.unique(np.asarray(grupos), return_inverse=True)
+        indices = [np.flatnonzero(inv == k) for k in range(len(codigos))]
     auc, dif, bss = [], [], []
     for _ in range(n):
-        b = rng.integers(0, len(y), len(y))
+        if grupos is None:
+            b = rng.integers(0, len(y), len(y))
+        else:
+            b = np.concatenate([indices[k] for k in rng.integers(0, len(indices), len(indices))])
         a1, a2 = roc_auc_score(y[b], p_ia[b]), roc_auc_score(y[b], p_ref[b])
         auc.append(a1)
         dif.append(a1 - a2)
         bss.append(1 - brier_score_loss(y[b], p_ia[b]) / brier_score_loss(y[b], p_ref[b]))
     ic = lambda v: [round(float(x), 3) for x in np.percentile(v, [2.5, 97.5])]
-    return {"auc_ia": ic(auc), "diferencia_auc": ic(dif), "brier_skill_score": ic(bss)}
+    return {"auc_ia": ic(auc), "diferencia_auc": ic(dif), "brier_skill_score": ic(bss),
+            "metodo": "bloques de distrito" if grupos is not None else "distrito-meses", "repeticiones": n}
 
 
-def importancia_permutacion(paquete, te, repeticiones=5):
+GRUPOS_VARIABLES = {
+    "historial de incendios del distrito": ["focos_lag1", "focos_lag2", "focos_12m", "frec_hist_mes",
+                                            "focos_mismo_mes_ant"],
+    "incendios en distritos vecinos": ["vec_focos_lag1", "vec_focos_12m"],
+    "época del año": ["mes_sin", "mes_cos"],
+    "clima medio del mes anterior": ["temp_max_lag1", "precip_lag1", "precip_3m", "anom_precip_3m",
+                                     "humedad_lag1", "viento_lag1"],
+    "indicadores diarios del mes anterior": ["dias_secos_lag1", "racha_seca_lag1", "dias_calidos_lag1",
+                                             "dias_aire_seco_lag1", "dias_ventosos_lag1", "hum_min_mes_lag1",
+                                             "dias_peligro_lag1"],
+    "vegetación": ["ndvi_lag1", "anom_ndvi_lag1"],
+    "terreno y cobertura": ["altitud_m", "pendiente_pct", "pct_pastizal", "pct_agricola"],
+}
+
+
+def importancia_permutacion(evaluados, repeticiones=5, grupos=None):
+    """Caída del AUC al permutar cada variable (o cada grupo de variables a la vez) en los
+    años de prueba. `evaluados`: lista de (modelo de ese año, datos de ese año). La caída se
+    promedia sobre los años, ponderada por el número de distrito-meses de cada año.
+    Permutar un grupo completo evita subestimar variables correlacionadas entre sí."""
     rng = np.random.default_rng(C.SEMILLA)
-    y = te.hubo_incendio.to_numpy()
-    base = roc_auc_score(y, probabilidad(paquete, te))
+    variables = evaluados[0][0]["variables"]
+    unidades = grupos or {v: [v] for v in variables}
+    total = sum(len(te) for _, te in evaluados)
     filas = []
-    for v in paquete["variables"]:
-        caidas = []
-        for _ in range(repeticiones):
-            t = te.copy()
-            t[v] = rng.permutation(t[v].to_numpy())
-            caidas.append(base - roc_auc_score(y, probabilidad(paquete, t)))
-        filas.append({"variable": v, "importancia": float(np.mean(caidas))})
-    return (pd.DataFrame(filas).assign(descripcion=lambda d: d.variable.map(C.NOMBRES_LEGIBLES))
-            .sort_values("importancia", ascending=False))
+    for nombre, vs in unidades.items():
+        vs = [v for v in vs if v in variables]
+        if not vs:
+            continue
+        caida = 0.0
+        for paquete, te in evaluados:
+            y = te.hubo_incendio.to_numpy()
+            base = roc_auc_score(y, probabilidad(paquete, te))
+            caidas = []
+            for _ in range(repeticiones):
+                t = te.copy()
+                orden = rng.permutation(len(t))
+                for v in vs:                      # mismas filas para todo el grupo
+                    t[v] = t[v].to_numpy()[orden]
+                caidas.append(base - roc_auc_score(y, probabilidad(paquete, t)))
+            caida += np.mean(caidas) * len(te) / total
+        filas.append({"variable": nombre, "importancia": float(caida)})
+    d = pd.DataFrame(filas).sort_values("importancia", ascending=False)
+    return d.assign(descripcion=d.variable.map(C.NOMBRES_LEGIBLES).fillna(d.variable))
 
 
 # --- Flujo principal -----------------------------------------------------------
@@ -138,7 +180,7 @@ def entrenar():
     hist = df[~df.es_pronostico].reset_index(drop=True)
 
     # 1. Evaluación año por año
-    partes, por_anio, paquete_ult = [], [], None
+    partes, por_anio, evaluados = [], [], []
     for T in C.ANIOS_PRUEBA:
         tr, te = hist[hist.anio < T], hist[hist.anio == T]
         if te.empty:
@@ -147,10 +189,11 @@ def entrenar():
         p = probabilidad(paquete, te)
         partes.append(te[["ubigeo", "anio", "mes", "hubo_incendio", "frec_hist_mes"]].assign(prob=p))
         y = te.hubo_incendio.to_numpy()
-        por_anio.append({"anio": int(T), "meses_con_incendio": int(y.sum()),
+        por_anio.append({"anio": int(T), "meses_con_incendio": int(y.sum()), "distrito_meses": int(len(y)),
+                         "prevalencia_pct": round(100 * float(y.mean()), 1),
                          "auc_ia": round(roc_auc_score(y, p), 3),
                          "auc_referencia": round(roc_auc_score(y, te.frec_hist_mes), 3)})
-        paquete_ult, te_ult = paquete, te
+        evaluados.append((paquete, te))
         print(f"[modelo] {T}: AUC IA {por_anio[-1]['auc_ia']:.3f} · referencia {por_anio[-1]['auc_referencia']:.3f}")
     ev = pd.concat(partes, ignore_index=True)
     y, p_ia, p_ref = ev.hubo_incendio.to_numpy(), ev.prob.to_numpy(), ev.frec_hist_mes.to_numpy()
@@ -167,8 +210,10 @@ def entrenar():
     C.SALIDAS.mkdir(exist_ok=True)
     ev.to_csv(C.SALIDAS / "predicciones_evaluacion.csv", index=False)
 
-    # 2. Importancia de variables (modelo del último año evaluado, sobre ese año)
-    importancia = importancia_permutacion(paquete_ult, te_ult)
+    # 2. Importancia por permutación en los seis años de prueba (cada año con su modelo):
+    #    por variable y por grupo de variables correlacionadas
+    importancia = importancia_permutacion(evaluados)
+    importancia_grupos = importancia_permutacion(evaluados, grupos=GRUPOS_VARIABLES)
 
     # 3. Modelo final con todos los años, para pronosticar el mes siguiente
     paquete = ajustar(hist)
@@ -179,19 +224,21 @@ def entrenar():
     joblib.dump(paquete, C.MODELO_ARCHIVO)
 
     resumen = {
-        "version": "0.3",
+        "version": C.VERSION if hasattr(C, "VERSION") else "0.3",
         "periodos": {"entrenamiento": f"{hist.anio.min()} hasta el año anterior a cada prueba",
                      "validacion": "calibración fuera de muestra (un año fuera cada vez)",
                      "prueba": f"{C.ANIOS_PRUEBA[0]}–{C.ANIOS_PRUEBA[-1]}, año por año"},
         "anticipacion": "1 mes (usa solo datos hasta el mes anterior)",
         "umbral_alerta": umbral_alerta(),
         "metricas_prueba": resultados,
-        "intervalos_95": intervalos_bootstrap(y, p_ia, p_ref),
+        "intervalos_95": intervalos_bootstrap(y, p_ia, p_ref, grupos=ev.ubigeo.to_numpy()),
+        "intervalos_95_distrito_meses": intervalos_bootstrap(y, p_ia, p_ref),
         "brier_skill_score": round(1 - brier_score_loss(y, p_ia) / brier_score_loss(y, p_ref), 3),
         "por_anio": por_anio,
         "umbrales": umbrales,
         "calibracion": calibracion,
         "importancia": importancia.head(12).round(4).to_dict("records"),
+        "importancia_grupos": importancia_grupos.round(4).to_dict("records"),
     }
     (C.SALIDAS / "evaluacion_modelo.json").write_text(json.dumps(resumen, ensure_ascii=False, indent=2), encoding="utf-8")
 
@@ -202,6 +249,8 @@ def entrenar():
           f"Brier skill score {resumen['brier_skill_score']} (IC 95 % {ic['brier_skill_score']})")
     print("\n[modelo] Variables más influyentes:")
     print(importancia.head(8)[["descripcion", "importancia"]].to_string(index=False))
+    print("\n[modelo] Importancia por grupos de variables:")
+    print(importancia_grupos[["descripcion", "importancia"]].to_string(index=False))
     return resumen
 
 

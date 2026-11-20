@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Ñawpaq Pacha</title>
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+<link rel="stylesheet" href="lib/leaflet.css">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
 <style>
@@ -299,7 +299,7 @@ dialog::backdrop{background:rgba(5,20,12,.55)}
 
 <dialog id="dlg" aria-labelledby="dlg-t"><div class="dlg-h"><div><div class="small muted" id="dlg-p"></div><h2 id="dlg-t"></h2></div><button class="x" aria-label="Cerrar" onclick="document.getElementById('dlg').close()">×</button></div><div class="dlg-b" id="dlg-b"></div></dialog>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<script src="lib/leaflet.js"></script>
 <script src="datos_riesgo.js"></script>
 <script>
 (function(){
@@ -495,7 +495,7 @@ function spark(u){
 }
 function ficha(u){
   const q=lang==='qu', dlg=document.getElementById('dlg');
-  const draft='';
+  const draft=q&&!D.quechua_validado?'<div class="draft">Borrador en quechua · falta validación con hablantes locales</div>':'';
   if(!u){
     const ds=distZona(), al=ds.filter(conAlerta), nv=al.length?al.reduce((m,d)=>N.indexOf(d.nivel_final)>N.indexOf(m)?d.nivel_final:m,'Bajo'):'Medio';
     document.getElementById('dlg-p').textContent=zona?'Provincia':'Región';

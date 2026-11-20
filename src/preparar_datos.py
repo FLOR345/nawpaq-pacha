@@ -66,11 +66,71 @@ def variables_vecinos(df):
     return pd.concat(salida, axis=1).reset_index()
 
 
-def construir_variables(panel, terr):
+def cargar_nasa():
+    """Tablas de src/fuentes_nasa.py (opcionales). Devuelve (mensual, anual) o (None, None)."""
+    if not C.NASA_MENSUAL.exists():
+        return None, None
+    mensual = pd.read_csv(C.NASA_MENSUAL, dtype={"ubigeo": str})
+    anual = pd.read_csv(C.NASA_ANUAL, dtype={"ubigeo": str}) if C.NASA_ANUAL.exists() else None
+    for t in (mensual, anual):
+        if t is not None:
+            t["ubigeo"] = t["ubigeo"].str.zfill(6)
+    return mensual, anual
+
+
+def conteo_etiqueta(df, etiqueta):
+    """Serie que define 'hubo incendio' (> 0) según config.ETIQUETA."""
+    if etiqueta not in C.ETIQUETAS:
+        raise ValueError(f"ETIQUETA debe ser una de {C.ETIQUETAS}, no {etiqueta!r}")
+    falta = {"viirs": ["focos_viirs"], "modis_viirs": ["focos_viirs"],
+             "area_quemada": ["quemado_pct"], "modis_alta": ["focos_modis_alta"]}.get(etiqueta, [])
+    if any(c not in df for c in falta):
+        raise ValueError(f"La etiqueta {etiqueta!r} necesita {falta}: ejecuta primero  python main.py --nasa")
+    if etiqueta == "modis":
+        return df.focos_calor
+    if etiqueta == "viirs":
+        return df.focos_viirs
+    if etiqueta == "modis_viirs":
+        return df.focos_calor + df.focos_viirs          # NaN si falta alguno de los dos
+    if etiqueta == "modis_alta":
+        return df.focos_modis_alta
+    return df.quemado_pct
+
+
+def _normal_previa(df, col):
+    """Media de los años ANTERIORES del mismo distrito y mes calendario (sin mirar el futuro)."""
+    return (df.groupby(["ubigeo", "mes_ref"])[col]
+            .transform(lambda s: s.shift(1).expanding(min_periods=2).mean()))
+
+
+def variables_nasa(df, g, anual):
+    """v0.4: rezagos y anomalías de las fuentes NASA (solo si existen las columnas)."""
+    for crudo, base in (("ndvi_area", "ndvi_area"), ("lst_dia_c", "lst"), ("humedad_suelo", "humedad_suelo")):
+        if crudo in df:
+            df[f"{base}_lag1"] = g[crudo].shift(1)
+            df[f"anom_{base}_lag1"] = df[f"{base}_lag1"] - _normal_previa(df, f"{base}_lag1")
+    for crudo, base in (("quemado_pct", "quemado"), ("focos_viirs", "focos_viirs")):
+        if crudo in df:
+            df[f"{base}_lag1"] = g[crudo].shift(1)
+            df[f"{base}_12m"] = g[crudo].transform(lambda s: s.shift(1).rolling(12, min_periods=6).sum())
+    if anual is not None and len(anual):
+        # cobertura del AÑO ANTERIOR: la del año en curso aún no existe al pronosticar
+        prev = anual.assign(anio=anual.anio + 1)
+        df = df.merge(prev[["ubigeo", "anio", "pct_pastizal_anual", "pct_agricola_anual"]],
+                      on=["ubigeo", "anio"], how="left")
+    return df
+
+
+def construir_variables(panel, terr, etiqueta=None, nasa=None):
+    """nasa: (mensual, anual) de fuentes_nasa; por defecto se leen de data/raw si existen."""
+    etiqueta = etiqueta or C.ETIQUETA
+    mensual, anual = nasa if nasa is not None else cargar_nasa()
     df = panel.sort_values(["ubigeo", "anio", "mes"]).reset_index(drop=True)
     diarias = VD.calcular(df.ubigeo.unique())
     df = df.merge(diarias, on=["ubigeo", "anio", "mes"], how="left")
     df = df.merge(variables_vecinos(df), on=["ubigeo", "anio", "mes"], how="left")
+    if mensual is not None and len(mensual):
+        df = df.merge(mensual, on=["ubigeo", "anio", "mes"], how="left")
     df = df.sort_values(["ubigeo", "anio", "mes"]).reset_index(drop=True)
     g = df.groupby("ubigeo", group_keys=False)
 
@@ -95,13 +155,15 @@ def construir_variables(panel, terr):
     # --- Anomalías: comparadas con años ANTERIORES del mismo distrito y mes ---
     df["mes_ref"] = (df.mes - 2) % 12 + 1          # mes calendario del rezago
     for col, nueva in (("precip_3m", "anom_precip_3m"), ("ndvi_lag1", "anom_ndvi_lag1")):
-        normal = (df.groupby(["ubigeo", "mes_ref"])[col]
-                  .transform(lambda s: s.shift(1).expanding(min_periods=2).mean()))
-        df[nueva] = df[col] - normal
+        df[nueva] = df[col] - _normal_previa(df, col)
 
-    # --- Historial: frecuencia de incendios en este mes en años previos ---
-    df["hubo_incendio"] = (df.focos_calor > 0).astype(float)
-    df.loc[df.focos_calor.isna(), "hubo_incendio"] = np.nan
+    # --- v0.4: fuentes NASA opcionales (AppEEARS, SMAP, VIIRS) ---
+    df = variables_nasa(df, g, anual)
+
+    # --- Variable a pronosticar y frecuencia de incendios en este mes en años previos ---
+    conteo = conteo_etiqueta(df, etiqueta)
+    df["hubo_incendio"] = (conteo > 0).astype(float)
+    df.loc[conteo.isna(), "hubo_incendio"] = np.nan
     df["frec_hist_mes"] = (df.groupby(["ubigeo", "mes"]).hubo_incendio
                            .transform(lambda s: s.shift(1).expanding(min_periods=2).mean()))
 
@@ -118,11 +180,18 @@ def preparar():
     panel, mes_pronostico = agregar_mes_siguiente(panel)
     df = construir_variables(panel, terr)
     df["es_pronostico"] = (df.anio == mes_pronostico[0]) & (df.mes == mes_pronostico[1])
-    # Quitamos filas iniciales sin historial suficiente
-    df = df.dropna(subset=C.VARIABLES_MODELO).reset_index(drop=True)
+    # Quitamos filas iniciales sin historial suficiente. Las variables NASA pueden
+    # faltar (nubes, SMAP sin dato): Random Forest y Gradient Boosting las aceptan vacías.
+    obligatorias = [v for v in C.VARIABLES_MODELO if v not in C.VARIABLES_NASA]
+    faltan = [v for v in C.VARIABLES_MODELO if v not in df]
+    if faltan:
+        raise ValueError(f"Faltan variables {faltan}. Si usas USAR_VARIABLES_NASA, ejecuta  python main.py --nasa")
+    df = df.dropna(subset=obligatorias)
+    # meses sin etiqueta (p. ej. antes de que haya datos VIIRS) no sirven para entrenar
+    df = df[df.es_pronostico | df.hubo_incendio.notna()].reset_index(drop=True)
     C.DATA_PROC.mkdir(parents=True, exist_ok=True)
     df.to_csv(C.DATASET_MODELO, index=False)
-    print(f"[preparación] {len(df):,} filas con variables · mes a pronosticar: "
+    print(f"[preparación] etiqueta: {C.ETIQUETA} · {len(df):,} filas con variables · mes a pronosticar: "
           f"{mes_pronostico[1]:02d}/{mes_pronostico[0]}")
     return df, mes_pronostico
 

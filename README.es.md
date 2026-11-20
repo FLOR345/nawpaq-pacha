@@ -101,6 +101,37 @@ MODIS MOD13Q1 y MCD12Q1 (ORNL DAAC) · Relieve: Copernicus DEM vía Open-Meteo �
 Comunidades y áreas protegidas: © OpenStreetMap · Pronóstico: Open-Meteo.
 Límites distritales derivados de *juaneladio/peru-geojson* (base INEI, MPL 2.0).
 
+## Fuentes NASA opcionales (v0.4, experimental)
+
+`src/fuentes_nasa.py` agrega, para cada distrito y mes, valores **promediados sobre todo el
+polígono del distrito** (no en un solo punto) y etiquetas de incendio alternativas:
+
+| Variable | Fuente | Resolución |
+|---|---|---|
+| NDVI (solo píxeles confiables) | MODIS MOD13A2 vía NASA AppEEARS | 1 km, 16 días |
+| Temperatura de la superficie de día | MODIS MOD11A2 vía AppEEARS | 1 km, 8 días |
+| Humedad del suelo superficial | SMAP SPL3SMP_E vía AppEEARS | 9 km, diaria |
+| Área quemada (% del distrito) | MODIS MCD64A1 vía AppEEARS | 500 m, mensual |
+| Cobertura del suelo **año por año** (se usa la del año anterior) | MODIS MCD12Q1 vía AppEEARS | 500 m, anual |
+| Focos de calor | NASA FIRMS VIIRS S-NPP | 375 m |
+
+```bash
+pip install -r requirements-nasa.txt      # rasterio, requests
+# .env:  EARTHDATA_USER=...  EARTHDATA_PASS=...   (cuenta gratis: https://urs.earthdata.nasa.gov)
+python main.py --nasa --ablacion
+```
+
+AppEEARS procesa los pedidos en los servidores de la NASA; la primera vez puede tardar horas.
+Si se corta, vuelve a ejecutar el mismo comando: las tareas enviadas se retoman desde
+`data/raw/appeears/tareas.json`.
+
+El modelo por defecto **no** usa estas variables. `--ablacion` agrega cada fuente por separado
+al Random Forest (configuraciones G en `outputs/ablacion.json`) y escribe
+`outputs/sensibilidad_etiqueta.json`, que vuelve a evaluar el modelo con cada definición de
+"incendio" (MODIS, VIIRS, MODIS o VIIRS, área quemada MCD64A1). Activa una fuente solo si mejora
+la evaluación 2020–2025: `NAWPAQ_VARIABLES_NASA=1` (todas las variables NASA) y
+`NAWPAQ_ETIQUETA=viirs` (otra etiqueta), como variables de entorno o en `src/config.py`.
+
 ## Pronóstico mensual automático
 
 El flujo `.github/workflows/pronostico.yml` se ejecuta el día 3 de cada mes (o a mano desde *Actions*):

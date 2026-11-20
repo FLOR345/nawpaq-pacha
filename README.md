@@ -122,6 +122,36 @@ and adjust the bounding box `BBOX` in `src/descargar_datos_reales.py`.
 District boundaries are derived from *juaneladio/peru-geojson* (INEI-based, MPL 2.0;
 see `data/raw/LICENCIA_LIMITES_DISTRITALES.txt`).
 
+## Optional NASA sources (v0.4, experimental)
+
+`src/fuentes_nasa.py` adds, for every district and month, values **averaged over the whole
+district polygon** (not a single point) and alternative fire labels:
+
+| Variable | Source | Resolution |
+|---|---|---|
+| NDVI (reliable pixels only) | MODIS MOD13A2 via NASA AppEEARS | 1 km, 16 days |
+| Daytime land surface temperature | MODIS MOD11A2 via AppEEARS | 1 km, 8 days |
+| Surface soil moisture | SMAP SPL3SMP_E via AppEEARS | 9 km, daily |
+| Burned area (% of district) | MODIS MCD64A1 via AppEEARS | 500 m, monthly |
+| Land cover, **year by year** (previous year is used) | MODIS MCD12Q1 via AppEEARS | 500 m, yearly |
+| Active fires | NASA FIRMS VIIRS S-NPP | 375 m |
+
+```bash
+pip install -r requirements-nasa.txt      # rasterio, requests
+# .env:  EARTHDATA_USER=...  EARTHDATA_PASS=...   (free account: https://urs.earthdata.nasa.gov)
+python main.py --nasa --ablacion
+```
+
+AppEEARS processes the requests on NASA servers; the first run can take hours. If it stops,
+run the same command again: submitted tasks are resumed from `data/raw/appeears/tareas.json`.
+
+The new variables are **not** used by the default model. `--ablacion` adds each source to
+the default random forest separately (configurations G in `outputs/ablacion.json`) and writes
+`outputs/sensibilidad_etiqueta.json`, which re-evaluates the model with each definition of
+"fire" (MODIS, VIIRS, MODIS or VIIRS, MCD64A1 burned area). Enable a source only if it improves
+the 2020–2025 evaluation: `NAWPAQ_VARIABLES_NASA=1` (all NASA variables) and
+`NAWPAQ_ETIQUETA=viirs` (another label) can be set as environment variables or in `src/config.py`.
+
 ## Automatic monthly forecast
 
 The workflow `.github/workflows/pronostico.yml` runs on the 3rd of every month (or on
