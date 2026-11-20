@@ -72,6 +72,10 @@ button:focus-visible,select:focus-visible,a:focus-visible,[tabindex]:focus-visib
 .legend h3{font:600 14px var(--font-body);margin:0 0 8px}
 .legend .lv{display:flex;align-items:center;gap:8px;margin:5px 0}
 .legend .lv i{width:12px;height:12px;border-radius:50%;flex:none}
+.ayuda{margin:2px 0 4px 24px;font-size:11.5px;line-height:1.35;color:var(--muted);max-width:180px}
+.wv{display:grid;gap:6px;justify-items:start}
+.wv a{display:inline-flex;text-decoration:none;color:var(--ink);gap:8px}
+.wv p{margin:0}
 .legend hr{border:0;border-top:1px solid var(--line);margin:10px 0}
 .tg{display:flex;align-items:center;gap:8px;margin:7px 0;cursor:pointer;user-select:none}
 .tg .ic{width:16px;text-align:center;flex:none}
@@ -233,6 +237,8 @@ footer p{margin:0 0 4px}
   .legend.closed .body{display:none}
   .legend .body{padding-right:8px;max-height:max(180px,calc(55dvh - 90px));overflow-y:auto;overscroll-behavior:contain}
   .tg{min-height:44px;margin:0}
+  .ayuda{max-width:none;margin-top:-4px}
+  .wv a{min-height:44px}
   .leaflet-touch .leaflet-bar a{width:44px;height:44px;line-height:44px;font-size:22px}
   /* Controles táctiles de 44 px */
   .btn{min-height:44px}
@@ -302,6 +308,8 @@ footer p{margin:0 0 4px}
             <label class="tg"><span class="ic">🌿</span><span>Pastizales</span><input type="checkbox" class="sw" data-capa="pastizal"></label>
             <label class="tg"><span class="ic">🏠</span><span>Comunidades</span><input type="checkbox" class="sw" data-capa="lugares"></label>
             <label class="tg"><span class="ic">🐾</span><span>Biodiversidad</span><input type="checkbox" class="sw" data-capa="protegidas" checked></label>
+            <label class="tg"><span class="ic">🛰</span><span>Imagen satelital de ayer (NASA)</span><input type="checkbox" class="sw" data-capa="nasa" aria-describedby="nasa-ayuda"></label>
+            <p class="ayuda" id="nasa-ayuda" hidden></p>
           </div>
         </div>
       </div>
@@ -436,6 +444,14 @@ const enZona = d => !zona || d.provincia===zona;
 const distZona = () => D.distritos.filter(enZona);
 
 const hoy=new Date();
+// Ayer en hora de Perú (AAAA-MM-DD): la imagen VIIRS del día suele publicarse completa al día siguiente
+const ayerISO=(()=>{const t=new Date(Date.now()-864e5);
+  try{return new Intl.DateTimeFormat('en-CA',{timeZone:'America/Lima',year:'numeric',month:'2-digit',day:'2-digit'}).format(t)}
+  catch(e){return t.toISOString().slice(0,10)}})();
+const ayerTxt=new Date(ayerISO+'T12:00').toLocaleDateString('es-PE',{day:'numeric',month:'long',year:'numeric'});
+const AYUDA_NASA='La imagen puede tener nubes; sirve para verificar humo o quemas grandes.';
+const urlWorldview=d=>{const [la,lo]=d.centro;
+  return 'https://worldview.earthdata.nasa.gov/?v='+[lo-.3,la-.3,lo+.3,la+.3].map(x=>x.toFixed(4)).join(',')+'&t='+ayerISO};
 document.getElementById('hoy').textContent=(innerWidth>760?'Hoy, ':'')+hoy.toLocaleDateString('es-PE',{day:'numeric',month:'short',year:'numeric'});
 document.getElementById('hoy').parentElement.setAttribute('aria-label','Hoy, '+hoy.toLocaleDateString('es-PE',{day:'numeric',month:'long',year:'numeric'}));
 
@@ -475,7 +491,16 @@ const capaDist=L.geoJSON(D.geojson,{style:estilo,onEachFeature:(f,l)=>{
 const capaPorU={}; capaDist.eachLayer(l=>capaPorU[l.feature.properties.ubigeo]=l);
 
 const rend=L.canvas({padding:.3});
+// VIIRS True Color de ayer. Si S-NPP no tiene imagen (404), se prueba NOAA-20 y luego NOAA-21 (mismo sensor).
+const GIBS=[['VIIRS_SNPP_CorrectedReflectance_TrueColor','VIIRS S-NPP'],['VIIRS_NOAA20_CorrectedReflectance_TrueColor','VIIRS NOAA-20'],
+            ['VIIRS_NOAA21_CorrectedReflectance_TrueColor','VIIRS NOAA-21']];
+let iGibs=0;
+const urlGibs=i=>`https://gibs.earthdata.nasa.gov/wmts/epsg3857/best/${GIBS[i][0]}/default/${ayerISO}/GoogleMapsCompatible_Level9/{z}/{y}/{x}.jpg`;
+const ayudaNasa=()=>{const ay=document.getElementById('nasa-ayuda');if(ay)ay.textContent=`Imagen ${GIBS[iGibs][1]} del ${ayerTxt}. ${AYUDA_NASA}`};
+const capaNasa=L.tileLayer(urlGibs(0),{maxNativeZoom:9,maxZoom:18,zIndex:5,attribution:'Imagery: NASA GIBS / Worldview'});
+capaNasa.on('tileerror',()=>{if(iGibs<GIBS.length-1){iGibs++;capaNasa.setUrl(urlGibs(iGibs));ayudaNasa()}});
 const capas={
+  nasa:capaNasa,
   historicos:L.layerGroup(D.capas.focos_12m.map(p=>L.circleMarker([p[0],p[1]],{renderer:rend,radius:2.5,weight:0,fillColor:'#ff3b1f',fillOpacity:.75}).bindTooltip(`Foco de calor · ${esc(p[2]).slice(0,10)}`))),
   activos:L.layerGroup(D.capas.focos_activos.map(p=>L.marker([p[0],p[1]],{icon:L.divIcon({className:'',html:'<svg class="flame" width="22" height="26" viewBox="0 0 24 28"><path d="M12 27c-6 0-9-4.4-9-9 0-4 2.4-6.7 4.3-8.6.4 2 1.6 3.3 3 3.6C9.6 8.3 12 4 15.5 1c-.6 3.7 1 6.3 2.8 8.6C20.3 12 21 14.4 21 17.5 21 23 17.5 27 12 27z" fill="#ff5a1f" stroke="#fff" stroke-width="1.5"/><path d="M12 25c-2.6 0-4-1.9-4-4 0-2 1.3-3.4 2.3-4.3.2 1.3 1 2 1.9 2 0-2 1-3.6 2.4-4.6.1 2 2 3.5 2 6 0 3-2 4.9-4.6 4.9z" fill="#ffd23f"/></svg>',iconSize:[22,26],iconAnchor:[11,24]})})
       .bindPopup(`<b>Foco activo</b><br>${esc(p[2])} ${String(p[3]).padStart(4,'0').replace(/(\d\d)(\d\d)/,'$1:$2')} UTC<br>Sensor: ${esc(p[4])}<br>Distrito: ${esc(byU[p[5]]?.distrito||'')}`))),
@@ -489,6 +514,8 @@ document.querySelectorAll('.sw[data-capa]').forEach(cb=>{
   const k=cb.dataset.capa; if(k in capasOn) cb.checked=capasOn[k];
   const apl=()=>{cb.checked?capas[k].addTo(map):map.removeLayer(capas[k]);capasOn[k]=cb.checked;store.set('capas',JSON.stringify(capasOn))};
   cb.addEventListener('change',apl); apl();
+  if(k==='nasa'){const ay=document.getElementById('nasa-ayuda');ayudaNasa();
+    const ver=()=>ay.hidden=!cb.checked; cb.addEventListener('change',ver); ver();}
 });
 const movil=matchMedia('(max-width:760px)');
 function legenda(abrir){const lg=document.getElementById('legend');lg.classList.toggle('closed',!abrir);document.getElementById('leg-min').setAttribute('aria-expanded',abrir)}
@@ -632,6 +659,7 @@ function ficha(u){
       <div><h3>¿Por qué?</h3><ul class="why">${(d.factores||[]).slice(0,3).map(x=>`<li>${esc(x)}</li>`).join('')||'<li>Sin factores destacados este mes.</li>'}</ul></div>
       <div class="todo"><h3>${q?'Yanapaq willakuykuna':'¿Qué hacer?'}</h3>${draft}<ul>${D.recomendaciones[d.nivel_final][lang].map(x=>`<li>${esc(x)}</li>`).join('')}</ul></div>
       <h3 class="sep">Datos</h3>
+      ${Array.isArray(d.centro)&&d.centro.length===2?`<div class="wv"><a class="btn ghost" href="${urlWorldview(d)}" target="_blank" rel="noopener noreferrer" aria-label="Ver ${esc(d.distrito)} en NASA Worldview, imagen del ${esc(ayerTxt)} (se abre en una pestaña nueva)"><span aria-hidden="true">🛰</span> Ver en NASA Worldview <span aria-hidden="true">↗</span></a><p class="small muted">Imagen satelital del ${esc(ayerTxt)}. ${AYUDA_NASA}</p></div>`:''}
       <div><h3>Historial: IA frente a lo ocurrido</h3>${spark(u)||'<p class="small muted">Sin historial suficiente.</p>'}</div>
       <div><h3>Condiciones del último mes</h3><div class="cond"><div><b>${c.temp_max??'–'}°</b><span>T. máx</span></div><div><b>${c.lluvia_3m??'–'}</b><span>mm lluvia 3 m</span></div><div><b>${c.humedad??'–'}%</b><span>humedad</span></div><div><b>${c.viento??'–'}</b><span>km/h viento</span></div><div><b>${c.ndvi??'–'}</b><span>NDVI</span></div></div></div>
       ${(d.tiempo||[]).length?`<div><h3>Pronóstico del tiempo · 7 días</h3><div class="tblx"><table><thead><tr><th>Día</th><th class="num">T. máx</th><th class="num">Hum. mín</th><th class="num">Viento máx</th><th class="num">Lluvia</th><th>Peligro</th></tr></thead><tbody>${d.tiempo.map(x=>`<tr><td>${new Date(x.fecha+'T12:00').toLocaleDateString('es-PE',{weekday:'short',day:'numeric'})}</td><td class="num">${fmt1(x.tmax)}°</td><td class="num">${x.hum_min??'–'}%</td><td class="num">${fmt1(x.viento_max)}</td><td class="num">${fmt1(x.lluvia)}</td><td><span class="chip ${x.peligro==='Moderado'?'dk':''}" style="background:var(${PEL_COL[x.peligro]})">${x.peligro}</span></td></tr>`).join('')}</tbody></table></div></div>`:''}
@@ -791,7 +819,7 @@ document.getElementById('reglas').innerHTML=`<ol style="padding-left:18px;margin
   <li><b>Pronóstico del tiempo (7 días):</b> cada día suma puntos por humedad mínima &lt;${R.humedad_min[0]}% (+1) o &lt;${R.humedad_min[1]}% (+2), viento ≥${R.viento_max[0]} km/h (+1) o ≥${R.viento_max[1]} km/h (+2) y lluvia &lt;${R.lluvia_seca} mm (+1). Si en 3 días hay 2 o más días de peligro Alto/Extremo, el nivel sube un escalón.</li>
   <li><b>Focos activos (NASA FIRMS):</b> si hay focos en las últimas 48 h, el distrito pasa al menos a Alto.</li></ol>
   <p class="muted">Se emite alerta desde el nivel <b>${esc(D.nivel_alerta)}</b>. Las alertas son orientativas y deben validarse con autoridades y comunidades.</p>`;
-document.getElementById('fuentes').innerHTML=((D.fuentes&&D.fuentes.fuentes)||[]).concat(['Condiciones actuales y pronóstico: Open-Meteo (en vivo)','Mapa base: Esri World Imagery / OpenTopoMap']).map(f=>`<li>${esc(f)}</li>`).join('');
+document.getElementById('fuentes').innerHTML=((D.fuentes&&D.fuentes.fuentes)||[]).concat(['Condiciones actuales y pronóstico: Open-Meteo (en vivo)','Mapa base: Esri World Imagery / OpenTopoMap','Imagen satelital del día (opcional): NASA GIBS / Worldview, VIIRS True Color (S-NPP; si no hay imagen, NOAA-20 o NOAA-21)']).map(f=>`<li>${esc(f)}</li>`).join('');
 function setLang(l){lang=l;store.set('lang',l);document.querySelectorAll('#seg-lang button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.l===l));
   document.getElementById('leg-niveles').innerHTML=N.slice().reverse().map(n=>`<div class="lv"><i style="background:${col(n)}"></i>${n}${l==='qu'?` · ${D.nivel_qu[n]}`:''}</div>`).join('');render()}
 document.querySelectorAll('#seg-lang button').forEach(b=>b.onclick=()=>setLang(b.dataset.l));
