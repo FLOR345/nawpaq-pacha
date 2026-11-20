@@ -135,6 +135,13 @@ td{padding:7px 8px;border-bottom:1px solid var(--line)}
 td.num,th.num{text-align:right;font-family:var(--font-data);font-variant-numeric:tabular-nums}
 tbody tr.clk{cursor:pointer}
 tbody tr.clk:hover{background:var(--accent-soft)}
+.kpi-auc{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 12px;background:var(--accent-soft);border-radius:10px;padding:10px 14px;margin-bottom:12px}
+.kpi-auc b{font:800 28px/1.1 var(--font-display);font-variant-numeric:tabular-nums}
+.kpi-auc span{font-size:13px;color:var(--ink)}
+.charts{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(440px,100%),1fr));gap:16px;margin-top:16px}
+.gcard h2{margin-bottom:4px}
+.gcard p{margin:0 0 6px}
+.chart{height:300px;width:100%}
 .imp{display:grid;grid-template-columns:minmax(0,1fr) 110px;gap:6px 10px;align-items:center;font-size:13px}
 .bar{height:8px;background:var(--accent);border-radius:4px}
 .cfg{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(300px,100%),1fr));gap:16px}
@@ -234,7 +241,8 @@ footer p{margin:0 0 4px}
   .acard{padding:14px}
   .two,.kpis{grid-template-columns:1fr 1fr}.two{grid-template-columns:1fr}
   .kpi b{font-size:24px}
-  .tbl{max-height:none}
+  .chart{height:270px}
+  .tbl{max-height:60vh}
   .cond{grid-template-columns:repeat(3,minmax(0,1fr))}
   /* Ficha del distrito a pantalla completa */
   dialog{width:100%;max-width:none;height:100dvh;max-height:none;margin:0;inset:0;border-radius:0;overflow-y:auto;overscroll-behavior:contain}
@@ -331,10 +339,26 @@ footer p{margin:0 0 4px}
         <div class="card pad">
           <h2>¿Qué tan bien funciona el modelo?</h2>
           <p class="small muted" id="periodos" style="margin-top:0"></p>
+          <div class="kpi-auc" id="kpi-auc" hidden></div>
           <table id="metrics"></table>
-          <h2 style="margin-top:18px">Lo que más pesa en la estimación</h2>
-          <div class="imp" id="imp"></div>
+          <div id="imp-lista"><h2 style="margin-top:18px">Lo que más pesa en la estimación</h2>
+          <div class="imp" id="imp"></div></div>
         </div>
+      </div>
+      <p class="small muted" id="graf-msg" hidden></p>
+      <div class="charts" id="charts">
+        <div class="card pad gcard" id="g-auc" hidden><h2>AUC por año: sistema frente a climatología</h2>
+          <p class="small muted">Cada año se evaluó con un modelo entrenado solo con años anteriores. Más alto es mejor; 0.5 sería azar.</p>
+          <div class="chart" id="c-auc" role="img"></div></div>
+        <div class="card pad gcard" id="g-cal" hidden><h2>Calibración: ¿la probabilidad dice la verdad?</h2>
+          <p class="small muted">Si los puntos caen sobre la diagonal, una probabilidad de 20 % significa que en unos 20 de cada 100 casos hubo incendio.</p>
+          <div class="chart" id="c-cal" role="img"></div></div>
+        <div class="card pad gcard" id="g-umb" hidden><h2>Umbral de alerta: detección y falsas alarmas</h2>
+          <p class="small muted" id="g-umb-t"></p>
+          <div class="chart" id="c-umb" role="img"></div></div>
+        <div class="card pad gcard" id="g-imp" hidden><h2 id="g-imp-h">Importancia por grupos de variables</h2>
+          <p class="small muted">Cuánto baja el AUC si se desordena ese grupo de datos. Barra más larga = el modelo depende más de él.</p>
+          <div class="chart" id="c-imp" role="img"></div></div>
       </div>
     </section>
 
@@ -367,6 +391,7 @@ footer p{margin:0 0 4px}
 <dialog id="dlg" aria-labelledby="dlg-t"><div class="dlg-h"><div><div class="small muted" id="dlg-p"></div><h2 id="dlg-t"></h2></div><button class="x" aria-label="Cerrar" onclick="document.getElementById('dlg').close()">×</button></div><div class="dlg-b" id="dlg-b"></div></dialog>
 
 <script src="lib/leaflet.js"></script>
+<script src="lib/echarts.min.js"></script>
 <script src="datos_riesgo.js"></script>
 <script>
 (function(){
@@ -643,6 +668,7 @@ function vistaReportes(){
   document.getElementById('kpis').innerHTML=N.slice().reverse().map(n=>`<div class="card kpi" style="--c:${col(n)}"><b>${c[n]||0}</b><span>distritos · ${n}</span></div>`).join('');
   document.getElementById('rows').innerHTML=ds.map(d=>`<tr class="clk" data-u="${d.ubigeo}"><td>${esc(d.distrito)}</td><td>${esc(d.provincia)}</td><td class="num">${pct(d.probabilidad)}</td><td>${d.nivel}</td><td><span class="chip ${d.nivel_final==='Medio'?'dk':''}" style="background:${col(d.nivel_final)}">${d.nivel_final}</span></td><td class="num">${d.focos_48h||''}</td></tr>`).join('');
   document.querySelectorAll('#rows tr').forEach(t=>t.onclick=()=>ficha(t.dataset.u));
+  requestAnimationFrame(dibujarGraficos);
 }
 const ev=D.evaluacion, m=ev.metricas_prueba;
 document.getElementById('periodos').textContent=ev.version?`Evaluado año por año (${ev.periodos.prueba.replace(', año por año','')}): cada año se pronosticó con un modelo entrenado solo con los años anteriores. Alerta desde ${Math.round(ev.umbral_alerta*100)} %. Anticipación: ${ev.anticipacion}.`:`Entrenado con ${ev.periodos.entrenamiento}, calibrado con ${ev.periodos.validacion} y evaluado con ${ev.periodos.prueba} (años que el modelo no vio). Anticipación: ${ev.anticipacion}.`;
@@ -651,6 +677,106 @@ document.getElementById('metrics').innerHTML=`<thead><tr><th>Métrica</th><th cl
 const imp={}; ev.importancia.forEach(i=>imp[i.descripcion]=(imp[i.descripcion]||0)+Math.max(0,i.importancia));
 const top=Object.entries(imp).sort((a,b)=>b[1]-a[1]).slice(0,6), mx=top[0]?top[0][1]||1:1;
 document.getElementById('imp').innerHTML=top.map(([d,v])=>`<span>${esc(d[0].toUpperCase()+d.slice(1))}</span><div class="bar" style="width:${Math.max(4,v/mx*100).toFixed(0)}%"></div>`).join('');
+(function kpiAuc(){
+  const a=m&&m[0]&&m[0].auc, ic=ev.intervalos_95&&ev.intervalos_95.auc_ia, el=document.getElementById('kpi-auc');
+  if(typeof a!=='number') return;
+  el.hidden=false;
+  el.innerHTML=`<b>AUC ${a.toFixed(3)}</b><span>${Array.isArray(ic)&&ic.length===2?`IC 95 %: ${(+ic[0]).toFixed(3)}–${(+ic[1]).toFixed(3)} · `:''}0.5 = azar, 1 = perfecto</span>`;
+})();
+
+// ---------- Gráficos de Reportes (Apache ECharts 5.6.0, local en lib/) ----------
+const EC=window.echarts, graficos={}, sinMov=matchMedia('(prefers-reduced-motion: reduce)');
+const cssv=n=>getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+const num=v=>typeof v==='number'&&isFinite(v);
+const f3=v=>(+v).toFixed(3), f1=v=>(+v).toFixed(1);
+function ejes(){const mut=cssv('--muted'),line=cssv('--line');
+  return {axisLine:{lineStyle:{color:line}},axisTick:{lineStyle:{color:line}},
+          axisLabel:{color:mut,fontFamily:'IBM Plex Mono, ui-monospace, monospace',fontSize:11},
+          splitLine:{lineStyle:{color:line}},nameTextStyle:{color:mut,fontSize:11}}}
+function baseG(){const ink=cssv('--ink');
+  return {animation:!sinMov.matches,aria:{enabled:false},textStyle:{fontFamily:'IBM Plex Sans, system-ui, sans-serif',color:ink},
+    grid:{left:8,right:18,top:38,bottom:8,containLabel:true},
+    legend:{top:0,left:0,itemWidth:22,textStyle:{color:ink,fontSize:12}},
+    tooltip:{backgroundColor:cssv('--panel'),borderColor:cssv('--line'),textStyle:{color:ink,fontSize:12},confine:true}}}
+const GRAF={
+  // a) AUC por año: sistema vs. climatología
+  auc:{datos(){const a=ev.por_anio;return Array.isArray(a)&&a.length&&a.every(r=>num(r.auc_ia)&&num(r.auc_referencia))?a:null},
+    alt:a=>'Gráfico de AUC por año. Sistema: '+a.map(r=>`${r.anio} ${f3(r.auc_ia)}`).join(', ')+'. Climatología: '+a.map(r=>`${r.anio} ${f3(r.auc_referencia)}`).join(', ')+'.',
+    opt(a){const E=ejes(),B=baseG(),lo=Math.min(...a.flatMap(r=>[r.auc_ia,r.auc_referencia]));
+      return {...B,tooltip:{...B.tooltip,trigger:'axis',valueFormatter:f3},
+        xAxis:{type:'category',data:a.map(r=>String(r.anio)),...E,splitLine:{show:false}},
+        yAxis:{type:'value',min:Math.max(.5,Math.floor((lo-.03)*20)/20),max:1,...E,axisLabel:{...E.axisLabel,formatter:v=>v.toFixed(2)}},
+        series:[{name:'Sistema (IA)',type:'line',data:a.map(r=>r.auc_ia),color:cssv('--accent'),lineStyle:{width:3},symbol:'circle',symbolSize:9,
+                 label:{show:true,position:'top',color:cssv('--ink'),fontSize:10,formatter:p=>f3(p.value)}},
+                {name:'Climatología (solo historial)',type:'line',data:a.map(r=>r.auc_referencia),color:cssv('--muted'),
+                 lineStyle:{width:2,type:'dashed'},symbol:'triangle',symbolSize:10}]}}},
+  // b) Calibración: predicho vs. observado con diagonal ideal
+  cal:{datos(){const c=ev.calibracion;return Array.isArray(c)&&c.length>1&&c.every(r=>num(r.predicho)&&num(r.observado))?c.slice().sort((x,y)=>x.predicho-y.predicho):null},
+    alt:c=>'Gráfico de calibración. Probabilidad predicha frente a frecuencia observada: '+c.map(r=>`${f1(r.predicho*100)} % predicho, ${f1(r.observado*100)} % observado`).join('; ')+'.',
+    opt(c){const E=ejes(),B=baseG(),pc=v=>Math.round(v*100)+' %',nmax=Math.max(...c.map(r=>r.n||1));
+      const mx=Math.min(1,Math.ceil(Math.max(...c.flatMap(r=>[r.predicho,r.observado]))*10+.5)/10);
+      return {...B,grid:{...B.grid,left:34,bottom:26},
+        tooltip:{...B.tooltip,trigger:'item',formatter:p=>p.seriesIndex?`Rango ${esc(p.data.r)}<br>Predicho: <b>${f1(p.data.value[0]*100)} %</b><br>Observado: <b>${f1(p.data.value[1]*100)} %</b><br>${p.data.n} distrito-meses`:'Calibración perfecta'},
+        xAxis:{type:'value',min:0,max:mx,name:'Probabilidad predicha',nameLocation:'middle',nameGap:26,...E,axisLabel:{...E.axisLabel,formatter:pc}},
+        yAxis:{type:'value',min:0,max:mx,name:'Frecuencia observada',nameLocation:'middle',nameRotate:90,nameGap:42,...E,axisLabel:{...E.axisLabel,formatter:pc}},
+        series:[{name:'Ideal (diagonal)',type:'line',data:[[0,0],[mx,mx]],symbol:'none',color:cssv('--muted'),lineStyle:{type:'dashed',width:1.5}},
+                {name:'Sistema (IA)',type:'line',color:cssv('--accent'),lineStyle:{width:2.5},symbol:'circle',
+                 data:c.map(r=>({value:[r.predicho,r.observado],n:r.n,r:r.rango,symbolSize:7+11*Math.sqrt((r.n||1)/nmax)}))}]}}},
+  // c) Umbrales: detección y falsas alarmas, marcando el umbral por defecto
+  umb:{datos(){const u=ev.umbrales;if(!Array.isArray(u)||u.length<2)return null;
+      const ok=k=>u.every(r=>r.ia&&num(r.ia[k]));
+      if(!u.every(r=>num(r.umbral))||!ok('deteccion_pct'))return null;
+      const tasa=ok('tasa_falsas_alarmas_pct'); if(!tasa&&!ok('falsas_alarmas_pct'))return null;
+      return {u:u.slice().sort((a,b)=>a.umbral-b.umbral),k:tasa?'tasa_falsas_alarmas_pct':'falsas_alarmas_pct',
+              nom:tasa?'Falsas alarmas (meses sin incendio con alerta)':'Alertas sin incendio (de cada 100 alertas)'}},
+    alt:d=>`Gráfico de umbrales. Incendios detectados y ${d.nom.toLowerCase()}: `+d.u.map(r=>`umbral ${Math.round(r.umbral*100)} %: detecta ${f1(r.ia.deteccion_pct)} %, ${f1(r.ia[d.k])} %`).join('; ')+`. Umbral por defecto ${Math.round((ev.umbral_alerta||.15)*100)} %.`,
+    opt(d){const E=ejes(),B=baseG(),def=Math.round((ev.umbral_alerta||.15)*100);
+      document.getElementById('g-umb-t').textContent=`Con un umbral más bajo se detectan más incendios, pero hay más falsas alarmas. El panel usa ${def} %.`+
+        (d.k==='falsas_alarmas_pct'?' Estos datos aún no traen la tasa de falsas alarmas; se muestra el % de alertas sin incendio.':'');
+      return {...B,grid:{...B.grid,top:58,bottom:26},tooltip:{...B.tooltip,trigger:'axis',valueFormatter:v=>f1(v)+' %'},
+        xAxis:{type:'value',min:0,max:Math.ceil(Math.max(...d.u.map(r=>r.umbral))*100/5)*5,name:'Umbral de alerta',nameLocation:'middle',nameGap:26,...E,splitLine:{show:false},axisLabel:{...E.axisLabel,formatter:v=>v+' %'}},
+        yAxis:{type:'value',min:0,max:100,...E,axisLabel:{...E.axisLabel,formatter:v=>v+' %'}},
+        series:[{name:'Incendios detectados',type:'line',data:d.u.map(r=>[r.umbral*100,r.ia.deteccion_pct]),color:cssv('--accent'),lineStyle:{width:3},symbol:'circle',symbolSize:8,
+                 markLine:{symbol:'none',silent:true,lineStyle:{color:cssv('--ink'),type:'solid',width:1.5},
+                           label:{formatter:`${def} % por defecto`,color:cssv('--ink'),fontSize:11,position:'end',distance:4},data:[{xAxis:def}]}},
+                {name:d.nom,type:'line',data:d.u.map(r=>[r.umbral*100,r.ia[d.k]]),color:cssv('--alert'),lineStyle:{width:2.5,type:'dashed'},symbol:'diamond',symbolSize:10}]}}},
+  // d) Importancia por grupos (o por variable si los datos no traen grupos)
+  imp:{datos(){const g=ev.importancia_grupos;
+      if(Array.isArray(g)&&g.length&&g.every(r=>num(r.importancia)))return {grupos:true,f:g.map(r=>[String(r.descripcion||r.variable),Math.max(0,r.importancia)])};
+      if(!Array.isArray(ev.importancia)||!ev.importancia.length)return null;
+      const a={};ev.importancia.forEach(i=>{const n=String(i.descripcion||i.variable);if(num(i.importancia))a[n]=(a[n]||0)+Math.max(0,i.importancia)});
+      const f=Object.entries(a);return f.length?{grupos:false,f}:null},
+    alt:d=>'Gráfico de importancia (caída del AUC): '+d.f.slice().sort((a,b)=>b[1]-a[1]).map(([n,v])=>`${n} ${f3(v)}`).join('; ')+'.',
+    opt(d){const E=ejes(),B=baseG(),cap=t=>t.charAt(0).toUpperCase()+t.slice(1),f=d.f.slice().sort((a,b)=>b[1]-a[1]).slice(0,8).reverse();
+      document.getElementById('g-imp-h').textContent=d.grupos?'Importancia por grupos de variables':'Importancia de las variables (estos datos aún no traen grupos)';
+      return {...B,legend:{show:false},grid:{...B.grid,top:8,right:46,bottom:22},
+        tooltip:{...B.tooltip,trigger:'axis',axisPointer:{type:'shadow'},valueFormatter:v=>'caída del AUC '+f3(v)},
+        xAxis:{type:'value',name:'Caída del AUC',nameLocation:'middle',nameGap:10,...E,axisLabel:{show:false}},
+        yAxis:{type:'category',data:f.map(x=>cap(x[0])),...E,splitLine:{show:false},axisLabel:{color:cssv('--ink'),fontSize:11.5,width:140,overflow:'break'}},
+        series:[{type:'bar',data:f.map(x=>x[1]),color:cssv('--accent'),barMaxWidth:18,itemStyle:{borderRadius:[0,4,4,0]},
+                 label:{show:true,position:'right',color:cssv('--muted'),fontSize:10,formatter:p=>f3(p.value)}}]}}}
+};
+const obsGraf=window.ResizeObserver?new ResizeObserver(es=>es.forEach(e=>{const g=graficos[e.target.id];if(g&&e.contentRect.width)g.resize()})):null;
+function dibujarGraficos(){
+  const msg=document.getElementById('graf-msg');
+  if(!EC){msg.hidden=false;msg.textContent='Los gráficos no están disponibles: falta dashboard/lib/echarts.min.js.';document.getElementById('charts').hidden=true;return}
+  let alguno=false;
+  for(const [k,g] of Object.entries(GRAF)){
+    const card=document.getElementById('g-'+k), el=document.getElementById('c-'+k);
+    try{
+      const d=g.datos();
+      if(!d){card.hidden=true;if(graficos[el.id]){graficos[el.id].dispose();delete graficos[el.id]}continue}
+      card.hidden=false; el.setAttribute('aria-label',g.alt(d));
+      let inst=graficos[el.id]; if(!inst){inst=EC.init(el,null,{renderer:'svg'});graficos[el.id]=inst;if(obsGraf)obsGraf.observe(el)}
+      inst.setOption(g.opt(d),true); inst.resize(); alguno=true;
+      if(k==='imp') document.getElementById('imp-lista').hidden=true;
+    }catch(e){card.hidden=true}
+  }
+  msg.hidden=alguno; if(!alguno) msg.textContent='Los datos de evaluación no traen información para gráficos.';
+}
+const oscuroSO=matchMedia('(prefers-color-scheme: dark)');
+if(oscuroSO.addEventListener) oscuroSO.addEventListener('change',()=>{if(vista==='reportes')dibujarGraficos()});
+
 document.getElementById('dl-csv').onclick=()=>{
   const q=s=>`"${String(s).replace(/"/g,'""')}"`;
   const lin=[['ubigeo','distrito','provincia','probabilidad','nivel_modelo','nivel_final','focos_48h','motivos','factores'].join(',')]
@@ -670,7 +796,7 @@ function setLang(l){lang=l;store.set('lang',l);document.querySelectorAll('#seg-l
   document.getElementById('leg-niveles').innerHTML=N.slice().reverse().map(n=>`<div class="lv"><i style="background:${col(n)}"></i>${n}${l==='qu'?` · ${D.nivel_qu[n]}`:''}</div>`).join('');render()}
 document.querySelectorAll('#seg-lang button').forEach(b=>b.onclick=()=>setLang(b.dataset.l));
 function setTheme(t){if(t)document.documentElement.dataset.theme=t;else delete document.documentElement.dataset.theme;store.set('theme',t);
-  document.querySelectorAll('#seg-theme button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.t===t));capaDist.setStyle(estilo)}
+  document.querySelectorAll('#seg-theme button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.t===t));capaDist.setStyle(estilo);if(vista==='reportes')dibujarGraficos()}
 document.querySelectorAll('#seg-theme button').forEach(b=>b.onclick=()=>setTheme(b.dataset.t));
 setTheme(store.get('theme')||'');
 document.querySelectorAll('#seg-base button').forEach(b=>b.onclick=()=>setBase(b.dataset.b));
