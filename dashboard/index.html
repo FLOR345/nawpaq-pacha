@@ -157,6 +157,22 @@ dialog::backdrop{background:rgba(5,20,12,.55)}
 .x{border:0;background:var(--bg);border-radius:8px;width:32px;height:32px;cursor:pointer;font-size:18px;flex:none}
 .prob{font:800 34px/1 var(--font-display);font-variant-numeric:tabular-nums}
 .draft{font:500 11px var(--font-data);color:var(--alto)}
+.hero{border-left:6px solid var(--c);background:var(--bg);border-radius:10px;padding:12px 14px;display:grid;gap:6px}
+.hero-n{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.hero .prob{font-size:52px;letter-spacing:-.02em}
+.hero p{margin:0}
+.hero-i{font-size:13px;color:var(--muted)}
+.ajuste{border:1px solid var(--alert);background:var(--alert-soft);border-radius:10px;padding:10px 12px;font-size:14px}
+.ajuste b .chip{vertical-align:1px;margin:0 2px}
+.ajuste ul{margin-top:6px}
+.why li{margin:2px 0}
+.todo ul{font-size:15px}
+.dlg-b h3.sep{border-top:1px solid var(--line);padding-top:12px;margin:2px 0 -6px;color:var(--ink)}
+.dlg-b>*{min-width:0}
+.dlg-f{border-top:1px solid var(--line);padding-top:10px}
+.dlg-f p{margin:0 0 4px}
+.lnk{border:0;background:none;padding:0;color:var(--accent);text-decoration:underline;cursor:pointer;font:inherit}
+@media (max-width:760px){.lnk{min-height:44px}.hero .prob{font-size:48px}}
 .cond{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:6px}
 .cond div{background:var(--bg);border-radius:6px;padding:6px;text-align:center}
 .cond b{display:block;font:500 14px var(--font-data)}
@@ -550,6 +566,17 @@ function spark(u){
    <text x="${w-6}" y="${h-2}" text-anchor="end" font-size="10" fill="var(--muted)" font-family="IBM Plex Mono,monospace">${L_[L_.length-1]}</text></svg>
    <div class="small muted"><span style="color:var(--accent)">━</span> probabilidad estimada por la IA · <span style="color:var(--muyalto)">▮</span> mes con incendio detectado por satélite</div>`;
 }
+// Frecuencia observada en la evaluación (evaluacion.calibracion) para el rango de esta probabilidad
+function calibrado(p){
+  const cal=(D.evaluacion||{}).calibracion; if(!Array.isArray(cal)||p==null) return null;
+  for(const b of cal){const m=/\(([\d.]+),\s*([\d.]+)\]/.exec(b.rango||''); if(!m||b.observado==null) continue;
+    const a=+m[1], z=+m[2]; if((p>a||(a===0&&p===0))&&p<=z) return Math.round(b.observado*100)}
+  return null;
+}
+function pieFicha(){
+  return `<footer class="dlg-f small muted"><p>${esc(D.aviso[lang])} En emergencia llama al <b>116</b> (Bomberos).</p>
+    <p>Generado ${esc(D.generado)} · pronóstico de ${esc(D.mes_pronostico)} · <button type="button" class="lnk" data-ir-fuentes>Fuentes de datos</button></p></footer>`;
+}
 function ficha(u){
   const q=lang==='qu', dlg=document.getElementById('dlg');
   const draft=q&&!D.quechua_validado?'<div class="draft">Borrador en quechua · falta validación con hablantes locales</div>':'';
@@ -560,25 +587,33 @@ function ficha(u){
     document.getElementById('dlg-b').innerHTML=`
       <div><h3>Recomendaciones · nivel ${nv}</h3>${draft}<ul>${D.recomendaciones[nv][lang].map(t=>`<li>${esc(t)}</li>`).join('')}</ul></div>
       <div><h3>Distritos con alerta (${al.length})</h3>${al.length?`<div class="tblx"><table><tbody>${al.map(d=>`<tr class="clk" data-u="${d.ubigeo}"><td><span class="chip ${d.nivel_final==='Medio'?'dk':''}" style="background:${col(d.nivel_final)}">${d.nivel_final}</span></td><td>${esc(d.distrito)}</td><td class="small muted">${esc(d.provincia)}</td><td class="num">${pct(d.probabilidad)}</td></tr>`).join('')}</tbody></table></div>`:'<p class="small muted">Ninguno.</p>'}</div>
-      <p class="small muted">${esc(D.aviso[lang])} En emergencia llama al <b>116</b> (Bomberos).</p>`;
+      ${pieFicha()}`;
     dlg.querySelectorAll('tr[data-u]').forEach(t=>t.onclick=()=>{dlg.close();seleccionar(t.dataset.u,true)});
   } else {
-    const d=byU[u], c=d.condiciones, t=d.territorio||{};
+    const d=byU[u], c=d.condiciones||{}, t=d.territorio||{}, sube=d.nivel_final!==d.nivel;
+    const nivTxt=n=>esc(n)+(q&&D.nivel_qu&&D.nivel_qu[n]?' · '+esc(D.nivel_qu[n]):'');
+    const chip=(n,extra='')=>`<span class="chip ${n==='Medio'?'dk':''}" style="background:${col(n)}${extra}">${nivTxt(n)}</span>`;
+    const obs=calibrado(d.probabilidad);
     document.getElementById('dlg-p').textContent=d.provincia;
     document.getElementById('dlg-t').textContent=d.distrito;
     document.getElementById('dlg-b').innerHTML=`
-      <div style="display:flex;gap:16px;align-items:center;flex-wrap:wrap">
-        <span class="chip ${d.nivel_final==='Medio'?'dk':''}" style="background:${col(d.nivel_final)};font-size:14px;padding:4px 12px">${q?D.nivel_qu[d.nivel_final]+' · ':''}${d.nivel_final}</span>
-        <div><div class="prob">${pct(d.probabilidad)}</div><div class="small muted">probabilidad de al menos un incendio en ${esc(D.mes_pronostico)} (modelo: ${d.nivel})</div></div></div>
-      ${d.motivos_alerta.length?`<div><h3>Ajuste de la alerta</h3><ul>${d.motivos_alerta.map(m=>`<li>${esc(m)}</li>`).join('')}</ul></div>`:''}
-      <div><h3>${conAlerta(d)?esc(D.titulo[lang]):(q?'Yanapaq willakuykuna':'Recomendaciones')}</h3>${draft}<ul>${D.recomendaciones[d.nivel_final][lang].map(x=>`<li>${esc(x)}</li>`).join('')}</ul></div>
-      <div><h3>Por qué este nivel</h3><ul>${d.factores.map(x=>`<li>${esc(x)}</li>`).join('')}</ul></div>
-      <div><h3>Condiciones del último mes</h3><div class="cond"><div><b>${c.temp_max}°</b><span>T. máx</span></div><div><b>${c.lluvia_3m}</b><span>mm lluvia 3 m</span></div><div><b>${c.humedad}%</b><span>humedad</span></div><div><b>${c.viento}</b><span>km/h viento</span></div><div><b>${c.ndvi}</b><span>NDVI</span></div></div></div>
+      <section class="hero" style="--c:${col(d.nivel_final)}" aria-label="Resumen del riesgo">
+        <div class="hero-n"><span class="prob">${pct(d.probabilidad)}</span>${chip(d.nivel_final,';font-size:14px;padding:4px 12px')}</div>
+        <p class="hero-t">Probabilidad <b>orientativa</b> de al menos un incendio en <b>${esc(D.mes_pronostico)}</b>. Riesgo <b>${esc(d.nivel_final.toLowerCase())}</b>${conAlerta(d)?' · <b>con alerta</b>':''}.</p>
+        ${obs!=null?`<p class="hero-i">De cada 100 distritos con esta probabilidad, unos <b>${obs}</b> tuvieron incendio detectado por satélite (evaluación con años pasados).</p>`:''}
+      </section>
+      ${sube?`<div class="ajuste" role="note"><b>El modelo indica ${chip(d.nivel)}; sube a ${chip(d.nivel_final)} por:</b><ul>${d.motivos_alerta.map(m=>`<li>${esc(m)}</li>`).join('')||'<li>regla de corto plazo</li>'}</ul></div>`
+        :d.motivos_alerta.length?`<div class="ajuste" role="note"><b>Además:</b><ul>${d.motivos_alerta.map(m=>`<li>${esc(m)}</li>`).join('')}</ul></div>`:''}
+      <div><h3>¿Por qué?</h3><ul class="why">${(d.factores||[]).slice(0,3).map(x=>`<li>${esc(x)}</li>`).join('')||'<li>Sin factores destacados este mes.</li>'}</ul></div>
+      <div class="todo"><h3>${q?'Yanapaq willakuykuna':'¿Qué hacer?'}</h3>${draft}<ul>${D.recomendaciones[d.nivel_final][lang].map(x=>`<li>${esc(x)}</li>`).join('')}</ul></div>
+      <h3 class="sep">Datos</h3>
+      <div><h3>Historial: IA frente a lo ocurrido</h3>${spark(u)||'<p class="small muted">Sin historial suficiente.</p>'}</div>
+      <div><h3>Condiciones del último mes</h3><div class="cond"><div><b>${c.temp_max??'–'}°</b><span>T. máx</span></div><div><b>${c.lluvia_3m??'–'}</b><span>mm lluvia 3 m</span></div><div><b>${c.humedad??'–'}%</b><span>humedad</span></div><div><b>${c.viento??'–'}</b><span>km/h viento</span></div><div><b>${c.ndvi??'–'}</b><span>NDVI</span></div></div></div>
       ${(d.tiempo||[]).length?`<div><h3>Pronóstico del tiempo · 7 días</h3><div class="tblx"><table><thead><tr><th>Día</th><th class="num">T. máx</th><th class="num">Hum. mín</th><th class="num">Viento máx</th><th class="num">Lluvia</th><th>Peligro</th></tr></thead><tbody>${d.tiempo.map(x=>`<tr><td>${new Date(x.fecha+'T12:00').toLocaleDateString('es-PE',{weekday:'short',day:'numeric'})}</td><td class="num">${fmt1(x.tmax)}°</td><td class="num">${x.hum_min??'–'}%</td><td class="num">${fmt1(x.viento_max)}</td><td class="num">${fmt1(x.lluvia)}</td><td><span class="chip ${x.peligro==='Moderado'?'dk':''}" style="background:var(${PEL_COL[x.peligro]})">${x.peligro}</span></td></tr>`).join('')}</tbody></table></div></div>`:''}
       <div><h3>Territorio</h3><div class="cond"><div><b>${t.altitud_m??'–'}</b><span>m altitud</span></div><div><b>${t.pendiente_pct??'–'}%</b><span>pendiente</span></div><div><b>${t.pct_pastizal??'–'}%</b><span>pastizal</span></div><div><b>${t.pct_agricola??'–'}%</b><span>agrícola</span></div><div><b>${D.capas.lugares.filter(p=>p[4]===u).length}</b><span>centros poblados</span></div></div></div>
-      <div><h3>Historial: IA frente a lo ocurrido</h3>${spark(u)}</div>
-      <p class="small muted">${esc(D.aviso[lang])} En emergencia llama al <b>116</b> (Bomberos).</p>`;
+      ${pieFicha()}`;
   }
+  const lf=dlg.querySelector('[data-ir-fuentes]'); if(lf) lf.onclick=()=>{dlg.close();ir('config')};
   dlg.showModal();
 }
 
