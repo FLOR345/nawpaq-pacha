@@ -15,7 +15,7 @@
   --side:#123d2c; --side-2:#0c2c20; --side-ink:#e3efe7; --side-muted:#9fbcab; --side-active:#2c6b4c;
   --accent:#1f6b47; --accent-soft:#e3f0e8;
   --bajo:#3aa655; --medio:#e8c62e; --alto:#ee7d1f; --muyalto:#d42b2b;
-  --alert:#c62828; --alert-soft:#fdecec;
+  --alert:#c62828; --alert-soft:#fdecec; --on-alert:#ffffff; --on-accent:#ffffff; --draft:#8a4b00;
   --font-display:"Bricolage Grotesque","Segoe UI",system-ui,sans-serif;
   --font-body:"IBM Plex Sans","Segoe UI",system-ui,sans-serif;
   --font-data:"IBM Plex Mono",ui-monospace,Consolas,monospace;
@@ -24,16 +24,18 @@
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
   --bg:#0f1512; --panel:#18211c; --ink:#e6eee8; --muted:#9db0a5; --line:#2a3830;
   --side:#0b2419; --side-2:#071a12; --accent:#5fc28f; --accent-soft:#1c3328;
-  --alert:#ef5350; --alert-soft:#3a1d1d; color-scheme:dark}}
+  --alert:#ef5350; --alert-soft:#3a1d1d; --on-alert:#1b1b1b; --on-accent:#0f1512; --draft:#f5b25c; color-scheme:dark}}
 :root[data-theme="dark"]{
   --bg:#0f1512; --panel:#18211c; --ink:#e6eee8; --muted:#9db0a5; --line:#2a3830;
   --side:#0b2419; --side-2:#071a12; --accent:#5fc28f; --accent-soft:#1c3328;
-  --alert:#ef5350; --alert-soft:#3a1d1d; color-scheme:dark}
+  --alert:#ef5350; --alert-soft:#3a1d1d; --on-alert:#1b1b1b; --on-accent:#0f1512; --draft:#f5b25c; color-scheme:dark}
 *{box-sizing:border-box}
 html,body{height:100%}
 body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.5 var(--font-body)}
 button,select{font:inherit;color:inherit}
-button:focus-visible,select:focus-visible,a:focus-visible,[tabindex]:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+button:focus-visible,select:focus-visible,a:focus-visible,input:focus-visible,[tabindex]:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+tr[tabindex]:focus-visible{outline-offset:-2px;background:var(--accent-soft)}
+.sw:focus-visible{outline-offset:3px}
 .app{display:grid;grid-template-columns:220px minmax(0,1fr);min-height:100vh}
 
 /* --- Barra lateral --- */
@@ -45,7 +47,7 @@ button:focus-visible,select:focus-visible,a:focus-visible,[tabindex]:focus-visib
 .nav button:hover{background:rgba(255,255,255,.07)}
 .nav button[aria-current="page"]{background:var(--side-active);box-shadow:inset 3px 0 0 #8fe0b3}
 .nav svg{flex:none;width:18px;height:18px}
-.nav .cnt{margin-left:auto;background:var(--alert);color:#fff;font:600 11px var(--font-data);padding:1px 7px;border-radius:999px}
+.nav .cnt{margin-left:auto;background:#c62828;color:#fff;font:600 11px var(--font-data);padding:1px 7px;border-radius:999px}
 .side-foot{margin-top:auto;font-size:12px;color:var(--side-muted);display:grid;gap:6px;padding:0 6px}
 .side-foot .st{display:flex;align-items:center;gap:6px;color:var(--side-ink)}
 .side-foot .st i{width:8px;height:8px;border-radius:50%;background:#59d18c;display:inline-block}
@@ -93,8 +95,8 @@ button:focus-visible,select:focus-visible,a:focus-visible,[tabindex]:focus-visib
 
 .right{display:grid;gap:14px}
 .alert{border:0;overflow:hidden}
-.alert .hd{background:var(--alert);color:#fff;padding:11px 14px;display:flex;align-items:center;gap:10px;font:700 15px var(--font-body)}
-.alert.ok .hd{background:var(--accent)}
+.alert .hd{background:var(--alert);color:var(--on-alert);padding:11px 14px;display:flex;align-items:center;gap:10px;font:700 15px var(--font-body)}
+.alert.ok .hd{background:var(--accent);color:var(--on-accent)}
 .alert .bd{padding:12px 14px;display:grid;gap:10px;border:1px solid var(--line);border-top:0;border-radius:0 0 12px 12px}
 .alert .bd p{margin:0}
 .btn{display:flex;align-items:center;justify-content:space-between;gap:8px;border:0;border-radius:8px;background:var(--side);color:#fff;font-weight:600;padding:10px 14px;cursor:pointer;width:100%}
@@ -151,7 +153,7 @@ tbody tr.clk:hover{background:var(--accent-soft)}
 .cfg{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(300px,100%),1fr));gap:16px}
 .seg{display:inline-flex;border:1px solid var(--line);border-radius:8px;overflow:hidden}
 .seg button{border:0;background:var(--panel);padding:6px 12px;cursor:pointer;font-weight:600;color:var(--muted)}
-.seg button[aria-pressed="true"]{background:var(--accent);color:#fff}
+.seg button[aria-pressed="true"]{background:var(--accent);color:var(--on-accent)}
 .row{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:8px 0;border-bottom:1px solid var(--line)}
 .row:last-child{border-bottom:0}
 code{font-family:var(--font-data);background:var(--bg);padding:1px 5px;border-radius:4px;font-size:12px}
@@ -167,7 +169,7 @@ dialog::backdrop{background:rgba(5,20,12,.55)}
 .dlg-b ul{margin:0;padding-left:18px;display:grid;gap:4px}
 .x{border:0;background:var(--bg);border-radius:8px;width:32px;height:32px;cursor:pointer;font-size:18px;flex:none}
 .prob{font:800 34px/1 var(--font-display);font-variant-numeric:tabular-nums}
-.draft{font:500 11px var(--font-data);color:var(--alto)}
+.draft{font:600 12px var(--font-data);color:var(--draft)}
 .hero{border-left:6px solid var(--c);background:var(--bg);border-radius:10px;padding:12px 14px;display:grid;gap:6px}
 .hero-n{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
 .hero .prob{font-size:52px;letter-spacing:-.02em}
@@ -250,6 +252,7 @@ footer p{margin:0 0 4px}
   .kpi b{font-size:24px}
   .chart{height:270px}
   .tbl{max-height:60vh}
+  tbody tr.clk td{padding-top:13px;padding-bottom:13px}
   .cond{grid-template-columns:repeat(3,minmax(0,1fr))}
   /* Ficha del distrito a pantalla completa */
   dialog{width:100%;max-width:none;height:100dvh;max-height:none;margin:0;inset:0;border-radius:0;overflow-y:auto;overscroll-behavior:contain}
@@ -258,7 +261,17 @@ footer p{margin:0 0 4px}
   .dlg-b{max-height:none;overflow:visible;padding:14px 16px calc(24px + env(safe-area-inset-bottom))}
   .x{width:44px;height:44px;font-size:22px}
 }
-@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+@keyframes aparecer{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+@keyframes fundido{from{opacity:0}to{opacity:1}}
+@keyframes latido{50%{opacity:.45}}
+.view:not([hidden]){animation:aparecer .22s cubic-bezier(.2,.7,.2,1)}
+dialog[open]{animation:aparecer .2s cubic-bezier(.2,.7,.2,1)}
+dialog[open]::backdrop{animation:fundido .2s ease-out}
+.btn,.nav button,.seg button,.acard,tbody tr.clk,.x{transition:background-color .15s,box-shadow .15s,color .15s}
+.legend .min{transition:transform .15s}
+.now.cargando b{animation:latido 1.2s ease-in-out infinite}
+.vacio b{font-size:15px}.vacio p{margin:4px 0 0}
+@media (prefers-reduced-motion:reduce){*,*::before,*::after,::backdrop{transition:none!important;animation:none!important}}
 /* --- Hoja de impresión para defensa civil (A4) --- */
 .hoja{display:none}
 @media print{
@@ -312,7 +325,7 @@ footer p{margin:0 0 4px}
   <main class="main">
     <div class="top">
       <svg class="mlogo" width="30" height="25" viewBox="0 0 44 36" aria-hidden="true"><path d="M2 34 L15 10 L22 20 L29 6 L42 34 Z" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linejoin="round"/><path d="M22 34c-5 0-7-4-5-8 1 2 3 2 3 0 0-3 2-5 4-6-1 3 2 4 2 7 1-1 1-2 1-3 2 2 3 4 2 6-1 3-4 4-7 4z" fill="#ff8a3d"/></svg>
-      <h1 id="titulo">Mapa de riesgo de incendios forestales</h1>
+      <h1 id="titulo">Mapa de riesgo de incendios de vegetación</h1>
       <label class="ctl"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 21s-7-6.2-7-12a7 7 0 0 1 14 0c0 5.8-7 12-7 12z"/></svg>
         <select id="zona" aria-label="Zona"></select></label>
       <span class="ctl"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg><span id="hoy"></span></span>
@@ -438,13 +451,19 @@ if(!D){document.querySelector('.main').innerHTML='<div class="card pad"><h2>Falt
 const N = D.niveles, VAR = {"Bajo":"--bajo","Medio":"--medio","Alto":"--alto","Muy alto":"--muyalto"};
 const col = n => `var(${VAR[n]})`;
 const hex = n => getComputedStyle(document.documentElement).getPropertyValue(VAR[n]).trim();
+// Texto oscuro sobre un color si da más contraste que el blanco (WCAG): los colores de nivel no cambian
+const lum=c=>{let h=String(c).trim().replace('#','');if(h.length===3)h=h.split('').map(x=>x+x).join('');
+  const v=[0,2,4].map(i=>parseInt(h.slice(i,i+2),16)/255).map(x=>x<=.03928?x/12.92:((x+.055)/1.055)**2.4);return .2126*v[0]+.7152*v[1]+.0722*v[2]};
+const oscuroSobre=varCss=>{try{const l=lum(getComputedStyle(document.documentElement).getPropertyValue(varCss));
+  return isFinite(l)&&(l+.05)/(lum('#1b1b1b')+.05)>1.05/(l+.05)}catch(e){return false}};
+const dk=n=>oscuroSobre(VAR[n])?'dk':'';
 const pct = p => Math.round(p*100)+'%';
 const esc = s => String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const fmt1 = v => v==null?'–':(Math.round(v*10)/10).toString();
 const byU = Object.fromEntries(D.distritos.map(d=>[d.ubigeo,d]));
 const store = {get(k){try{return localStorage.getItem('nawpaq.'+k)}catch(e){return null}}, set(k,v){try{localStorage.setItem('nawpaq.'+k,v)}catch(e){}}};
 let lang = store.get('lang')||'es', zona = '', sel = null, vista = 'inicio', filtroA = 'alerta';
-let actual = {};   // condiciones actuales en vivo por ubigeo
+let actual = {}, cargandoVivo = false;   // condiciones actuales en vivo por ubigeo
 
 // ---------- Regla de alerta de corto plazo (igual que src/alertas.py) ----------
 const R = D.peligro_tiempo;
@@ -494,7 +513,8 @@ const ban=document.getElementById('banner');
 if(D.fuentes&&D.fuentes.firms_anio_en_curso===false){ban.hidden=false;ban.innerHTML='<b>Faltan focos de calor del año en curso.</b> Agrega tu clave gratuita de NASA FIRMS en el archivo <code>.env</code> (<code>FIRMS_MAP_KEY=…</code>) y vuelve a ejecutar <code>python main.py --datos-reales</code>.';}
 
 // ---------- Mapa ----------
-const map=L.map('map',{zoomControl:false,zoomSnap:.25}).setView([-15,-70],7);
+const sinMovimiento=matchMedia('(prefers-reduced-motion: reduce)').matches;
+const map=L.map('map',{zoomControl:false,zoomSnap:.25,zoomAnimation:!sinMovimiento,fadeAnimation:!sinMovimiento,markerZoomAnimation:!sinMovimiento}).setView([-15,-70],7);
 L.control.zoom({position:'bottomright'}).addTo(map);
 const bases={
   sat:[L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',{maxZoom:18,attribution:'Imágenes © Esri, Maxar, Earthstar Geographics'}),
@@ -631,7 +651,8 @@ function condiciones(){
     <div><span>💧 Humedad</span><b>${c?Math.round(c.relative_humidity_2m)+'%':'–'}</b></div>`;
   const t=d.tiempo||[];
   document.getElementById('days').innerHTML=t.map(x=>{const f=new Date(x.fecha+'T12:00');return `<div class="day" title="${esc(x.fecha)} · peligro ${x.peligro} · hum. mín ${x.hum_min}% · viento máx ${x.viento_max} km/h · lluvia ${x.lluvia} mm"><b>${f.toLocaleDateString('es-PE',{weekday:'short'}).slice(0,2)}</b>${Math.round(x.tmax)}°<i style="background:var(${PEL_COL[x.peligro]})"></i></div>`}).join('');
-  document.getElementById('now-src').innerHTML=`${esc(d.distrito)}${sel?'':' (distrito de mayor riesgo)'} · ${c?'en vivo, Open-Meteo '+esc(c.time.slice(11)):'sin conexión'}${t.length?'<br>Barra de color: peligro meteorológico de incendio por día':''}`;
+  document.getElementById('now').classList.toggle('cargando',!c&&cargandoVivo);
+  document.getElementById('now-src').innerHTML=`${esc(d.distrito)}${sel?'':' (distrito de mayor riesgo)'} · ${c?'en vivo, Open-Meteo '+esc(c.time.slice(11)):cargandoVivo?'cargando el tiempo en vivo…':'sin conexión'}${t.length?'<br>Barra de color: peligro meteorológico de incendio por día':''}`;
 }
 
 // ---------- Ficha / recomendaciones ----------
@@ -668,13 +689,13 @@ function ficha(u){
     document.getElementById('dlg-t').textContent=zona||'Puno';
     document.getElementById('dlg-b').innerHTML=`
       <div><h3>Recomendaciones · nivel ${nv}</h3>${draft}<ul>${D.recomendaciones[nv][lang].map(t=>`<li>${esc(t)}</li>`).join('')}</ul></div>
-      <div><h3>Distritos con alerta (${al.length})</h3>${al.length?`<div class="tblx"><table><tbody>${al.map(d=>`<tr class="clk" data-u="${d.ubigeo}"><td><span class="chip ${d.nivel_final==='Medio'?'dk':''}" style="background:${col(d.nivel_final)}">${d.nivel_final}</span></td><td>${esc(d.distrito)}</td><td class="small muted">${esc(d.provincia)}</td><td class="num">${pct(d.probabilidad)}</td></tr>`).join('')}</tbody></table></div>`:'<p class="small muted">Ninguno.</p>'}</div>
+      <div><h3>Distritos con alerta (${al.length})</h3>${al.length?`<div class="tblx"><table><tbody>${al.map(d=>`<tr class="clk" tabindex="0" data-u="${d.ubigeo}"><td><span class="chip ${dk(d.nivel_final)}" style="background:${col(d.nivel_final)}">${d.nivel_final}</span></td><td>${esc(d.distrito)}</td><td class="small muted">${esc(d.provincia)}</td><td class="num">${pct(d.probabilidad)}</td></tr>`).join('')}</tbody></table></div>`:'<p class="small muted">Ninguno.</p>'}</div>
       ${pieFicha()}`;
-    dlg.querySelectorAll('tr[data-u]').forEach(t=>t.onclick=()=>{dlg.close();seleccionar(t.dataset.u,true)});
+    dlg.querySelectorAll('tr[data-u]').forEach(t=>{const ir_=()=>{dlg.close();seleccionar(t.dataset.u,true)};t.onclick=ir_;t.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();ir_()}}});
   } else {
     const d=byU[u], c=d.condiciones||{}, t=d.territorio||{}, sube=d.nivel_final!==d.nivel;
     const nivTxt=n=>esc(n)+(q&&D.nivel_qu&&D.nivel_qu[n]?' · '+esc(D.nivel_qu[n]):'');
-    const chip=(n,extra='')=>`<span class="chip ${n==='Medio'?'dk':''}" style="background:${col(n)}${extra}">${nivTxt(n)}</span>`;
+    const chip=(n,extra='')=>`<span class="chip ${dk(n)}" style="background:${col(n)}${extra}">${nivTxt(n)}</span>`;
     const obs=calibrado(d.probabilidad);
     document.getElementById('dlg-p').textContent=d.provincia;
     document.getElementById('dlg-t').textContent=d.distrito;
@@ -692,7 +713,7 @@ function ficha(u){
       ${Array.isArray(d.centro)&&d.centro.length===2?`<div class="wv"><a class="btn ghost" href="${urlWorldview(d)}" target="_blank" rel="noopener noreferrer" aria-label="Ver ${esc(d.distrito)} en NASA Worldview, imagen del ${esc(ayerTxt)} (se abre en una pestaña nueva)"><span aria-hidden="true">🛰</span> Ver en NASA Worldview <span aria-hidden="true">↗</span></a><p class="small muted">Imagen satelital del ${esc(ayerTxt)}. ${AYUDA_NASA}</p></div>`:''}
       <div><h3>Historial: IA frente a lo ocurrido</h3>${spark(u)||'<p class="small muted">Sin historial suficiente.</p>'}</div>
       <div><h3>Condiciones del último mes</h3><div class="cond"><div><b>${c.temp_max??'–'}°</b><span>T. máx</span></div><div><b>${c.lluvia_3m??'–'}</b><span>mm lluvia 3 m</span></div><div><b>${c.humedad??'–'}%</b><span>humedad</span></div><div><b>${c.viento??'–'}</b><span>km/h viento</span></div><div><b>${c.ndvi??'–'}</b><span>NDVI</span></div></div></div>
-      ${(d.tiempo||[]).length?`<div><h3>Pronóstico del tiempo · 7 días</h3><div class="tblx"><table><thead><tr><th>Día</th><th class="num">T. máx</th><th class="num">Hum. mín</th><th class="num">Viento máx</th><th class="num">Lluvia</th><th>Peligro</th></tr></thead><tbody>${d.tiempo.map(x=>`<tr><td>${new Date(x.fecha+'T12:00').toLocaleDateString('es-PE',{weekday:'short',day:'numeric'})}</td><td class="num">${fmt1(x.tmax)}°</td><td class="num">${x.hum_min??'–'}%</td><td class="num">${fmt1(x.viento_max)}</td><td class="num">${fmt1(x.lluvia)}</td><td><span class="chip ${x.peligro==='Moderado'?'dk':''}" style="background:var(${PEL_COL[x.peligro]})">${x.peligro}</span></td></tr>`).join('')}</tbody></table></div></div>`:''}
+      ${(d.tiempo||[]).length?`<div><h3>Pronóstico del tiempo · 7 días</h3><div class="tblx"><table><thead><tr><th>Día</th><th class="num">T. máx</th><th class="num">Hum. mín</th><th class="num">Viento máx</th><th class="num">Lluvia</th><th>Peligro</th></tr></thead><tbody>${d.tiempo.map(x=>`<tr><td>${new Date(x.fecha+'T12:00').toLocaleDateString('es-PE',{weekday:'short',day:'numeric'})}</td><td class="num">${fmt1(x.tmax)}°</td><td class="num">${x.hum_min??'–'}%</td><td class="num">${fmt1(x.viento_max)}</td><td class="num">${fmt1(x.lluvia)}</td><td><span class="chip ${oscuroSobre(PEL_COL[x.peligro])?'dk':''}" style="background:var(${PEL_COL[x.peligro]})">${x.peligro}</span></td></tr>`).join('')}</tbody></table></div></div>`:''}
       <div><h3>Territorio</h3><div class="cond"><div><b>${t.altitud_m??'–'}</b><span>m altitud</span></div><div><b>${t.pendiente_pct??'–'}%</b><span>pendiente</span></div><div><b>${t.pct_pastizal??'–'}%</b><span>pastizal</span></div><div><b>${t.pct_agricola??'–'}%</b><span>agrícola</span></div><div><b>${D.capas.lugares.filter(p=>p[4]===u).length}</b><span>centros poblados</span></div></div></div>
       ${pieFicha()}`;
   }
@@ -712,11 +733,11 @@ function vistaAlertas(){
   document.getElementById('a-info').textContent=`${ds.length} distrito(s) · ${zona?'provincia '+zona:'toda la región'} · pronóstico ${D.mes_pronostico}`;
   document.getElementById('alist').innerHTML=ds.length?ds.map(d=>`<div class="card acard" tabindex="0" data-u="${d.ubigeo}" style="--c:${col(d.nivel_final)}">
     <div style="display:flex;justify-content:space-between;gap:8px;align-items:flex-start"><div><h3>${esc(d.distrito)}</h3><div class="small muted">${esc(d.provincia)}</div></div>
-    <span class="chip ${d.nivel_final==='Medio'?'dk':''}" style="background:${col(d.nivel_final)}">${d.nivel_final}</span></div>
+    <span class="chip ${dk(d.nivel_final)}" style="background:${col(d.nivel_final)}">${d.nivel_final}</span></div>
     <div class="small" style="margin-top:6px">Probabilidad del mes: <b>${pct(d.probabilidad)}</b>${d.focos_48h?` · 🔥 <b>${d.focos_48h}</b> foco(s) 48 h`:''}</div>
     <ul>${[...d.motivos_alerta,...d.factores].slice(0,4).map(x=>`<li>${esc(x)}</li>`).join('')}</ul></div>`).join('')
-    :'<div class="card pad">No hay distritos con alerta en esta zona. 👍</div>';
-  document.querySelectorAll('.acard').forEach(c=>{c.onclick=()=>ficha(c.dataset.u);c.onkeydown=e=>{if(e.key==='Enter')ficha(c.dataset.u)}});
+    :`<div class="card pad vacio" role="status"><b>✓ ${filtroA==='alerta'?'Sin distritos con alerta':'Sin distritos'}</b><p class="small muted">${filtroA==='alerta'?`Ningún distrito de ${esc(zona?'la provincia '+zona:'la región')} llega al nivel ${esc(D.nivel_alerta)} en ${esc(D.mes_pronostico)}. Usa «Todos» para ver el resto.`:'No hay distritos en esta zona.'}</p></div>`;
+  document.querySelectorAll('.acard').forEach(c=>{c.onclick=()=>ficha(c.dataset.u);c.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();ficha(c.dataset.u)}}});
 }
 document.querySelectorAll('#af button').forEach(b=>b.onclick=()=>{filtroA=b.dataset.f;document.querySelectorAll('#af button').forEach(x=>x.setAttribute('aria-pressed',x===b));vistaAlertas()});
 
@@ -724,8 +745,8 @@ document.querySelectorAll('#af button').forEach(b=>b.onclick=()=>{filtroA=b.data
 function vistaReportes(){
   const ds=distZona(), c={}; ds.forEach(d=>c[d.nivel_final]=(c[d.nivel_final]||0)+1);
   document.getElementById('kpis').innerHTML=N.slice().reverse().map(n=>`<div class="card kpi" style="--c:${col(n)}"><b>${c[n]||0}</b><span>distritos · ${n}</span></div>`).join('');
-  document.getElementById('rows').innerHTML=ds.map(d=>`<tr class="clk" data-u="${d.ubigeo}"><td>${esc(d.distrito)}</td><td>${esc(d.provincia)}</td><td class="num">${pct(d.probabilidad)}</td><td>${d.nivel}</td><td><span class="chip ${d.nivel_final==='Medio'?'dk':''}" style="background:${col(d.nivel_final)}">${d.nivel_final}</span></td><td class="num">${d.focos_48h||''}</td></tr>`).join('');
-  document.querySelectorAll('#rows tr').forEach(t=>t.onclick=()=>ficha(t.dataset.u));
+  document.getElementById('rows').innerHTML=ds.length?ds.map(d=>`<tr class="clk" tabindex="0" data-u="${d.ubigeo}" aria-label="Abrir ficha de ${esc(d.distrito)}"><td>${esc(d.distrito)}</td><td>${esc(d.provincia)}</td><td class="num">${pct(d.probabilidad)}</td><td>${d.nivel}</td><td><span class="chip ${dk(d.nivel_final)}" style="background:${col(d.nivel_final)}">${d.nivel_final}</span></td><td class="num">${d.focos_48h||''}</td></tr>`).join(''):'<tr><td colspan="6" class="muted">No hay distritos en esta zona.</td></tr>';
+  document.querySelectorAll('#rows tr[data-u]').forEach(t=>{t.onclick=()=>ficha(t.dataset.u);t.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();ficha(t.dataset.u)}}});
   requestAnimationFrame(dibujarGraficos);
 }
 const ev=D.evaluacion, m=ev.metricas_prueba;
@@ -890,7 +911,7 @@ addEventListener('beforeprint',hojaImpresion);
 ['imprimir-hoja','imprimir-hoja-r'].forEach(id=>{const b=document.getElementById(id);if(b)b.onclick=()=>{hojaImpresion();print()}});
 
 // ---------- Navegación ----------
-const TIT={inicio:'Mapa de riesgo de incendios forestales',mapa:'Mapa de riesgo de incendios forestales',alertas:'Alertas de incendio',reportes:'Reportes',config:'Configuración'};
+const TIT={inicio:'Mapa de riesgo de incendios de vegetación',mapa:'Mapa de riesgo de incendios de vegetación',alertas:'Alertas de incendios de vegetación',reportes:'Reportes',config:'Configuración'};
 function ir(v){vista=v;
   document.querySelectorAll('.nav button').forEach(b=>{if(b.dataset.v===v)b.setAttribute('aria-current','page');else b.removeAttribute('aria-current')});
   const home=v==='inicio'||v==='mapa';
@@ -921,7 +942,7 @@ function render(){
 // ---------- Datos en vivo: Open-Meteo (condiciones actuales + 7 días) ----------
 async function enVivo(forzar){
   const ds=D.distritos.filter(d=>d.centro), live=document.getElementById('st-live');
-  live.textContent='Actualizando tiempo en vivo…';
+  live.textContent='Actualizando tiempo en vivo…'; cargandoVivo=true; if(vista==='inicio') condiciones();
   try{
     for(let i=0;i<ds.length;i+=50){
       const b=ds.slice(i,i+50);
@@ -938,6 +959,7 @@ async function enVivo(forzar){
     }
     live.textContent='Tiempo en vivo: '+new Date().toLocaleTimeString('es-PE',{hour:'2-digit',minute:'2-digit'});
   }catch(e){live.textContent='Sin conexión al pronóstico en vivo; se muestran los datos del '+D.generado;}
+  cargandoVivo=false;
   D.distritos.forEach(d=>{if(!d.motivos_alerta)d.motivos_alerta=[]});
   render();
 }
