@@ -244,6 +244,7 @@ footer p{margin:0 0 4px}
   .btn{min-height:44px}
   .seg button{min-height:44px;padding:6px 14px}
   .row{flex-wrap:wrap}
+  #imprimir-hoja{margin-left:0!important;width:100%;justify-content:center}
   .acard{padding:14px}
   .two,.kpis{grid-template-columns:1fr 1fr}.two{grid-template-columns:1fr}
   .kpi b{font-size:24px}
@@ -258,7 +259,33 @@ footer p{margin:0 0 4px}
   .x{width:44px;height:44px;font-size:22px}
 }
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
-@media print{.side,.top .ctl,.toolbar button{display:none}.app{display:block}}
+/* --- Hoja de impresión para defensa civil (A4) --- */
+.hoja{display:none}
+@media print{
+  @page{size:A4 portrait;margin:12mm 11mm 10mm}
+  html,body{background:#fff!important;color:#111!important}
+  .app,dialog,.leaflet-container{display:none!important}
+  .hoja{display:block;font:9.5pt/1.35 "IBM Plex Sans",Arial,sans-serif;color:#111}
+  .h-cab{border-bottom:2px solid #111;padding-bottom:6pt;margin-bottom:8pt}
+  .h-cab .marca{font:700 9pt Arial,sans-serif;letter-spacing:.06em;text-transform:uppercase;color:#333}
+  .h-cab h1{font:800 16pt/1.2 "Bricolage Grotesque",Arial,sans-serif;margin:3pt 0 4pt}
+  .h-cab p{margin:0 0 2pt}
+  .h-cab .draft{color:#8a4b00;font-size:8.5pt}
+  .hoja table{width:100%;border-collapse:collapse;font-size:8.8pt}
+  .hoja thead{display:table-header-group}
+  .hoja tfoot{display:table-footer-group}
+  .hoja th{position:static;text-align:left;font:700 8pt Arial,sans-serif;text-transform:uppercase;letter-spacing:.03em;color:#111;
+           border-bottom:1.5pt solid #111;padding:4pt 4pt;background:#fff}
+  .hoja td{border-bottom:.6pt solid #999;padding:4pt;vertical-align:top}
+  .hoja tbody tr{break-inside:avoid;page-break-inside:avoid}
+  .hoja td.num{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+  .h-niv{white-space:nowrap;font-weight:700}
+  .h-niv i{display:inline-block;width:8pt;height:8pt;border-radius:2pt;margin-right:4pt;vertical-align:-1pt;
+           background:var(--c);border:.5pt solid #111;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .h-esp{height:12mm;border:0!important;padding:0!important}
+  .h-pie{position:fixed;left:0;right:0;bottom:0;border-top:1pt solid #111;padding-top:3pt;font-size:8pt;color:#111;background:#fff}
+  .h-vacio{font-size:11pt;padding:16pt 0}
+}
 </style>
 </head>
 <body>
@@ -327,6 +354,7 @@ footer p{margin:0 0 4px}
           <button data-f="alerta" aria-pressed="true">Con alerta</button><button data-f="todos" aria-pressed="false">Todos</button>
         </div>
         <span class="small muted" id="a-info"></span>
+        <button class="btn ghost" id="imprimir-hoja" style="margin-left:auto">🖨 Imprimir hoja de alertas</button>
       </div>
       <div class="alist" id="alist"></div>
     </section>
@@ -338,7 +366,7 @@ footer p{margin:0 0 4px}
         <div class="card pad">
           <div class="toolbar" style="justify-content:space-between">
             <h2 style="margin:0">Distritos ordenados por riesgo</h2>
-            <div style="display:flex;gap:8px"><button class="btn ghost" id="dl-csv">⬇ CSV</button><button class="btn ghost" onclick="print()">🖨 Imprimir</button></div>
+            <div style="display:flex;gap:8px"><button class="btn ghost" id="dl-csv">⬇ CSV</button><button class="btn ghost" id="imprimir-hoja-r" title="Imprime la hoja de alertas para defensa civil">🖨 Hoja de alertas</button></div>
           </div>
           <div class="tbl"><table>
             <thead><tr><th>Distrito</th><th>Provincia</th><th class="num">Prob. mes</th><th>Modelo</th><th>Alerta final</th><th class="num">Focos 48 h</th></tr></thead>
@@ -395,6 +423,8 @@ footer p{margin:0 0 4px}
     <footer id="footer"><p id="foot-aviso"></p><p id="foot-gen"></p></footer>
   </main>
 </div>
+
+<section class="hoja" id="hoja" aria-hidden="true"></section>
 
 <dialog id="dlg" aria-labelledby="dlg-t"><div class="dlg-h"><div><div class="small muted" id="dlg-p"></div><h2 id="dlg-t"></h2></div><button class="x" aria-label="Cerrar" onclick="document.getElementById('dlg').close()">×</button></div><div class="dlg-b" id="dlg-b"></div></dialog>
 
@@ -829,6 +859,35 @@ document.querySelectorAll('#seg-theme button').forEach(b=>b.onclick=()=>setTheme
 setTheme(store.get('theme')||'');
 document.querySelectorAll('#seg-base button').forEach(b=>b.onclick=()=>setBase(b.dataset.b));
 document.getElementById('refresh').onclick=()=>enVivo(true);
+
+// ---------- Hoja de impresión para defensa civil ----------
+const PIE_HOJA='Probabilidad orientativa generada por ÑAWPAQ PACHA a partir de datos satelitales públicos. No reemplaza la evaluación en campo.';
+function hojaImpresion(){
+  const q=lang==='qu', ds=distZona().filter(conAlerta)
+    .sort((a,b)=>N.indexOf(b.nivel_final)-N.indexOf(a.nivel_final)||b.probabilidad-a.probabilidad);
+  const colorN=n=>(D.colores&&D.colores[n])||hex(n);
+  const motivo=d=>(d.motivos_alerta&&d.motivos_alerta[0])||(d.factores&&d.factores[0])||'–';
+  const rec=d=>((D.recomendaciones[d.nivel_final]||{})[lang]||[])[0]||'–';
+  const lugar=zona?`Provincia ${zona}`:'Región Puno (108 distritos)';
+  document.getElementById('hoja').innerHTML=`
+    <header class="h-cab">
+      <div class="marca">ÑAWPAQ PACHA · Hoja de alertas de incendios de vegetación</div>
+      <h1>Distritos con alerta · ${esc(D.mes_pronostico)} · ${esc(lugar)}</h1>
+      <p>Pronóstico de <b>${esc(D.mes_pronostico)}</b> · generado <b>${esc(D.generado)}</b> · impreso ${esc(hoy.toLocaleDateString('es-PE',{day:'numeric',month:'long',year:'numeric'}))}</p>
+      <p>Alerta desde el nivel <b>${esc(D.nivel_alerta)}</b> · <b>${ds.length}</b> distrito(s) con alerta · En emergencia llame al <b>116</b> (Bomberos).</p>
+      ${q&&!D.quechua_validado?'<p class="draft">Borrador en quechua · falta validación con hablantes locales</p>':''}
+    </header>
+    ${ds.length?`<table>
+      <thead><tr><th>Distrito</th><th>Provincia</th><th class="num">Prob.</th><th>Nivel final</th><th>Motivo principal</th><th>${q?'Yanapaq willakuy':'Recomendación'}</th></tr></thead>
+      <tfoot><tr><td colspan="6" class="h-esp"></td></tr></tfoot>
+      <tbody>${ds.map(d=>`<tr><td><b>${esc(d.distrito)}</b></td><td>${esc(d.provincia)}</td><td class="num">${pct(d.probabilidad)}</td>
+        <td class="h-niv"><i style="--c:${colorN(d.nivel_final)}"></i>${esc(d.nivel_final)}${q&&D.nivel_qu?` · ${esc(D.nivel_qu[d.nivel_final]||'')}`:''}${d.nivel_final!==d.nivel?`<br><span style="font-weight:400">(modelo: ${esc(d.nivel)})</span>`:''}</td>
+        <td>${esc(motivo(d))}</td><td>${esc(rec(d))}</td></tr>`).join('')}</tbody></table>`
+      :`<p class="h-vacio">No hay distritos con alerta en ${esc(lugar)} para ${esc(D.mes_pronostico)}.</p>`}
+    <footer class="h-pie">${PIE_HOJA}</footer>`;
+}
+addEventListener('beforeprint',hojaImpresion);
+['imprimir-hoja','imprimir-hoja-r'].forEach(id=>{const b=document.getElementById(id);if(b)b.onclick=()=>{hojaImpresion();print()}});
 
 // ---------- Navegación ----------
 const TIT={inicio:'Mapa de riesgo de incendios forestales',mapa:'Mapa de riesgo de incendios forestales',alertas:'Alertas de incendio',reportes:'Reportes',config:'Configuración'};
