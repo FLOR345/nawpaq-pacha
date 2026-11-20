@@ -41,6 +41,16 @@ def test_nombre_de_archivo_appeears():
     capa, fecha = FN.fecha_de("SPL3SMP_E.006_Soil_Moisture_Retrieval_Data_AM_soil_moisture_doy2016366_aid0001.tif")
     assert capa.endswith("AM_soil_moisture") and fecha == dt.date(2016, 12, 31)
     assert FN.fecha_de("MOD13A2-061-QA-lookup.csv") == (None, None)
+    # nombre real de AppEEARS con hora en la fecha (doyAAAADDDhhmmss)
+    assert FN.fecha_de("MOD11A2.061_LST_Day_1km_doy2015209000000_aid0001.tif") == ("LST_Day_1km", dt.date(2015, 7, 28))
+
+
+def test_rango_valido_en_unidades_escaladas():
+    # AppEEARS da ValidMin/ValidMax en unidades ya escaladas (LST en kelvin), no en el valor crudo
+    meta = {"ScaleFactor": 0.02, "AddOffset": 0, "FillValue": 0, "ValidMin": 150.0, "ValidMax": 1310.7}
+    v = FN.escalar(np.array([14916, 5000, np.nan], dtype=float), meta)
+    assert v[0] == pytest.approx(298.32)
+    assert np.isnan(v[1]) and np.isnan(v[2])
 
 
 def _tif(ruta, datos, x0=-70.0, y0=-15.0, paso=0.01, nodata=-3000):
