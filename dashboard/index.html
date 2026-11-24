@@ -11,11 +11,14 @@
 /* Layout: barra lateral verde → encabezado (título, zona, fecha) → vistas:
    Inicio (mapa + alerta + zonas + condiciones) · Mapa · Alertas · Reportes · Configuración */
 :root{
-  --bg:#eef1ee; --panel:#ffffff; --ink:#17231d; --muted:#5d6b63; --line:#dbe2dc;
+  --bg:#f6f0e6; --panel:#fffdf9; --ink:#17231d; --muted:#5a645c; --line:#e6dccb;
   --side:#123d2c; --side-2:#0c2c20; --side-ink:#e3efe7; --side-muted:#9fbcab; --side-active:#2c6b4c;
   --accent:#1f6b47; --accent-soft:#e3f0e8;
   --bajo:#3aa655; --medio:#e8c62e; --alto:#ee7d1f; --muyalto:#d42b2b;
   --alert:#c62828; --alert-soft:#fdecec; --on-alert:#ffffff; --on-accent:#ffffff; --draft:#8a4b00;
+  --cielo1:#f3c7aa; --cielo2:#f8e6d4; --mt-lejos:#b3a7c8; --mt-medio:#d3b58e; --mt-cerca:#e6d3b7; --nieve:#ffffff;
+  --alert-bg2:#fde0d2; --sil1:#ddd2ee; --sil2:#8f6fc4; --zi-v:#e4f2df; --zi-r:#fde3da; --ink-2:#3a463f;
+  --sombra:0 1px 2px rgba(70,50,20,.06),0 8px 22px rgba(70,50,20,.07);
   --font-display:"Bricolage Grotesque","Segoe UI",system-ui,sans-serif;
   --font-body:"IBM Plex Sans","Segoe UI",system-ui,sans-serif;
   --font-data:"IBM Plex Mono",ui-monospace,Consolas,monospace;
@@ -24,11 +27,17 @@
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
   --bg:#0f1512; --panel:#18211c; --ink:#e6eee8; --muted:#9db0a5; --line:#2a3830;
   --side:#0b2419; --side-2:#071a12; --accent:#5fc28f; --accent-soft:#1c3328;
-  --alert:#ef5350; --alert-soft:#3a1d1d; --on-alert:#1b1b1b; --on-accent:#0f1512; --draft:#f5b25c; color-scheme:dark}}
+  --alert:#ef5350; --alert-soft:#3a1d1d; --on-alert:#1b1b1b; --on-accent:#0f1512; --draft:#f5b25c;
+  --cielo1:#22324a; --cielo2:#141d18; --mt-lejos:#40506c; --mt-medio:#2b3a31; --mt-cerca:#1a241e; --nieve:#d7e0ea;
+  --alert-bg2:#3a1d1d; --sil1:#2f3a44; --sil2:#a88ad8; --zi-v:#1f3326; --zi-r:#3a2420; --ink-2:#c5d2ca; --sombra:0 1px 2px rgba(0,0,0,.4);
+  color-scheme:dark}}
 :root[data-theme="dark"]{
   --bg:#0f1512; --panel:#18211c; --ink:#e6eee8; --muted:#9db0a5; --line:#2a3830;
   --side:#0b2419; --side-2:#071a12; --accent:#5fc28f; --accent-soft:#1c3328;
-  --alert:#ef5350; --alert-soft:#3a1d1d; --on-alert:#1b1b1b; --on-accent:#0f1512; --draft:#f5b25c; color-scheme:dark}
+  --alert:#ef5350; --alert-soft:#3a1d1d; --on-alert:#1b1b1b; --on-accent:#0f1512; --draft:#f5b25c;
+  --cielo1:#22324a; --cielo2:#141d18; --mt-lejos:#40506c; --mt-medio:#2b3a31; --mt-cerca:#1a241e; --nieve:#d7e0ea;
+  --alert-bg2:#3a1d1d; --sil1:#2f3a44; --sil2:#a88ad8; --zi-v:#1f3326; --zi-r:#3a2420; --ink-2:#c5d2ca; --sombra:0 1px 2px rgba(0,0,0,.4);
+  color-scheme:dark}
 *{box-sizing:border-box}
 html,body{height:100%}
 body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.5 var(--font-body)}
@@ -272,6 +281,116 @@ dialog[open]::backdrop{animation:fundido .2s ease-out}
 .now.cargando b{animation:latido 1.2s ease-in-out infinite}
 .vacio b{font-size:15px}.vacio p{margin:4px 0 0}
 @media (prefers-reduced-motion:reduce){*,*::before,*::after,::backdrop{transition:none!important;animation:none!important}}
+/* ===== Rediseño visual (paisaje andino, tarjetas cálidas) ===== */
+.card{box-shadow:var(--sombra);border-color:var(--line)}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+/* Barra lateral */
+.side{overflow:hidden}
+.logo{border-bottom:0;padding:2px 6px 10px}
+.logo b{font:800 19px/1.02 var(--font-display);letter-spacing:.03em}
+.tejido{height:14px;margin:-6px -12px 4px;flex:none;opacity:.95;
+  background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='28' height='14'%3E%3Cpath d='M0 7L7 0l7 7-7 7z' fill='%23e8a33d'/%3E%3Cpath d='M4 7l3-3 3 3-3 3z' fill='%230c2c20'/%3E%3Cpath d='M14 7l7-7 7 7-7 7z' fill='none' stroke='%23f2c14e' stroke-width='1.6'/%3E%3Ccircle cx='21' cy='7' r='1.6' fill='%23d9532b'/%3E%3C/svg%3E") repeat-x center/28px 14px}
+.side-ilus{display:block;flex:none;width:calc(100% + 24px);height:150px;margin:0 -12px -18px}
+.side-foot{position:relative;z-index:1}
+/* Encabezado con paisaje */
+.top.cabecera{position:relative;isolation:isolate;overflow:hidden;margin:-18px -22px 0;padding:20px 22px 30px;
+  background:linear-gradient(180deg,var(--cielo1),var(--cielo2) 72%,var(--bg))}
+.cabecera .paisaje{position:absolute;right:0;bottom:0;width:min(78%,1100px);height:100%;z-index:-1;pointer-events:none}
+.tit{display:flex;align-items:center;gap:12px;margin-right:auto;min-width:0}
+.tit-ic{width:42px;height:46px;flex:none;filter:drop-shadow(0 2px 4px rgba(200,60,20,.25))}
+.tit h1{margin:0;font-size:clamp(20px,2.4vw,28px)}
+.sub{margin:2px 0 0;color:var(--ink-2);font-size:14.5px}
+.cabecera .ctl{background:var(--panel);box-shadow:var(--sombra);border-color:var(--line);border-radius:10px}
+/* Leyenda */
+.legend{width:220px;border-radius:12px}
+.legend h3.cap{margin:2px 0 6px}
+.tg .ic{width:20px;height:20px;display:grid;place-items:center}
+.tg .ic svg{width:18px;height:18px}
+.ic-gente{color:#2f6fb5}
+.lago{color:#cfe9ff}
+.leaflet-tooltip.dist.sel{font-size:13px;padding:6px 10px;border-radius:8px;box-shadow:0 4px 14px rgba(0,0,0,.3)}
+/* Botón pantalla completa */
+.pant{width:34px;height:34px;display:grid;place-items:center;background:#fff;color:#333;cursor:pointer;padding:0;border:2px solid rgba(0,0,0,.2)!important;border-radius:4px}
+.pant svg{width:18px;height:18px}
+.pant:hover{background:#f4f4f4}
+.mapcard.max{position:fixed;inset:0;z-index:1300;border-radius:0;border:0}
+.mapcard.max #map{height:100vh;height:100dvh;min-height:0}
+body.sin-scroll{overflow:hidden}
+/* Columna izquierda y tarjetas bajo el mapa */
+.izq{display:grid;gap:16px;min-width:0}
+.kpirow{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
+.kcard{position:relative;overflow:hidden;padding:14px 16px 12px;display:grid;grid-template-columns:auto 1fr;align-content:start;gap:0 10px;min-height:124px}
+.kcard .ki{grid-row:1/3;width:34px;height:34px;display:grid;place-items:center}
+.kcard .ki svg{width:30px;height:30px}
+.kcard h3{margin:0;font:700 15px/1.25 var(--font-body)}
+.kcard .ks{font-size:12.5px;color:var(--muted);line-height:1.3}
+.kcard .kn{grid-column:1/-1;font:800 38px/1 var(--font-display);margin-top:10px;font-variant-numeric:tabular-nums;position:relative;z-index:1}
+.kcard .kart{position:absolute;right:10px;bottom:8px;width:48%;height:58%;pointer-events:none}
+.kcard .kart.sil{width:34%;height:66%;bottom:6px}
+/* Tarjeta de alerta */
+.alert{box-shadow:var(--sombra)}
+.alert .hd{font-size:16px}
+.alert .hd svg{width:22px;height:22px;flex:none}
+.alert .bd{position:relative;overflow:hidden;background:linear-gradient(140deg,var(--panel) 45%,var(--alert-bg2));border-color:var(--line)}
+.alert .bd>*{position:relative;z-index:1}
+.alert .bd>.llamas{position:absolute;right:-4px;bottom:-6px;width:118px;z-index:0}
+.alert .btn.rec{background:#8e1b1b;color:#fff;width:auto;justify-self:start;gap:16px;border-radius:10px}
+.alert .btn.rec:hover{background:#6f1414}
+.alert.ok .btn.rec{background:var(--side)}
+.volver{width:100%;justify-content:flex-start;gap:10px;border-radius:10px;box-shadow:var(--sombra)}
+.volver[hidden]{display:none}
+/* Zonas y condiciones */
+.zones{gap:0}
+.zone{padding:9px 0;border-bottom:1px solid var(--line)}
+.zone:last-child{border-bottom:0}
+.zone .zi{width:36px;height:36px;border-radius:10px;background:var(--zi-v)}
+.zone .zi.zr{background:var(--zi-r);color:#d4553a}
+.zone .zi svg{width:22px;height:22px}
+.now div{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:8px 6px}
+.now .nl{display:flex;align-items:center;justify-content:center;gap:4px;font-size:11.5px;color:var(--ink-2)}
+.now .nl svg{width:18px;height:18px;flex:none}
+.day{background:var(--panel);border:1px solid var(--line)}
+@media (max-width:1100px){.kpirow{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media (max-width:760px){
+  .tejido,.side-ilus{display:none}
+  .top.cabecera{margin:-12px -16px 0;padding:12px 16px 16px}
+  .cabecera .paisaje{width:100%;opacity:.55}
+  .tit{flex:1 1 100%;gap:10px}
+  .tit-ic{width:34px;height:38px}
+  .tit h1{font-size:19px}
+  .sub{font-size:12.5px}
+  .mlogo{display:none!important}
+  .kpirow{grid-template-columns:1fr;gap:10px}
+  .izq{display:contents}
+  .mapcard{order:1}.right{order:2}.kpirow{order:3}
+  .kcard{min-height:104px}
+  .kcard .kn{font-size:32px}
+  .kcard .kart{width:42%;height:62%}
+  .pant{width:44px;height:44px}
+  .legend{width:auto}
+}
+
+/* ===== Ajustes de color y legibilidad ===== */
+.card.kpi{border-top-color:var(--c)}
+.card.acard{border-left-color:var(--c)}
+.kpi,.acard{background:linear-gradient(180deg,color-mix(in srgb,var(--c) 9%,var(--panel)),var(--panel) 70%)}
+.kpi b{color:color-mix(in srgb,var(--c) 55%,var(--ink))}
+.acard{transition:box-shadow .15s,transform .15s}
+.acard:hover{transform:translateY(-1px)}
+.nw{white-space:nowrap}
+td{vertical-align:middle}
+tbody tr.clk:hover td{background:var(--accent-soft)}
+.flame{filter:drop-shadow(0 1px 2px rgba(0,0,0,.55))}
+.leaflet-container{background:#1d2a23}
+.sub{text-shadow:0 0 6px var(--cielo2),0 0 2px var(--cielo2)}
+@media (max-width:760px){
+  .c-sec{display:none}
+  .sub{display:none}
+  .top.cabecera{padding-bottom:12px}
+  .tit-ic{width:30px;height:33px}
+}
+@media (prefers-reduced-motion:reduce){.tit-ic{filter:none}}
+
 /* --- Hoja de impresión para defensa civil (A4) --- */
 .hoja{display:none}
 @media print{
@@ -305,9 +424,10 @@ dialog[open]::backdrop{animation:fundido .2s ease-out}
 <div class="app">
   <aside class="side">
     <div class="logo">
-      <svg width="34" height="28" viewBox="0 0 44 36" aria-hidden="true"><path d="M2 34 L15 10 L22 20 L29 6 L42 34 Z" fill="none" stroke="#e3efe7" stroke-width="2.6" stroke-linejoin="round"/><path d="M22 34c-5 0-7-4-5-8 1 2 3 2 3 0 0-3 2-5 4-6-1 3 2 4 2 7 1-1 1-2 1-3 2 2 3 4 2 6-1 3-4 4-7 4z" fill="#ff8a3d"/></svg>
-      <b>ÑAWPAQ PACHA</b>
+      <svg width="58" height="38" viewBox="0 0 64 40" aria-hidden="true"><path d="M2 37 L20 11 L28 21 L39 4 L62 37Z" fill="none" stroke="#fff" stroke-width="3" stroke-linejoin="round"/><path d="M39 4 L45.5 13.5 L42 12.5 L39 15.5 L36 12 L33.6 12.6Z" fill="#fff"/><path d="M27 37c-.4-6.6 3.4-11 10-12-1.2 5.8-4.6 10-10 12z" fill="#7cc35b"/><path d="M28.5 36.5c1.5-4.6 4.2-7.8 7.6-9.6" stroke="#2f7a2a" stroke-width="1.3" fill="none"/></svg>
+      <b>ÑAWPAQ<br>PACHA</b>
     </div>
+    <div class="tejido" aria-hidden="true"></div>
     <nav class="nav" aria-label="Secciones">
       <button data-v="inicio" aria-current="page"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/></svg><span class="l-long">Inicio</span><span class="l-short" aria-hidden="true">Inicio</span></button>
       <button data-v="mapa"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 21s-7-6.2-7-12a7 7 0 0 1 14 0c0 5.8-7 12-7 12z"/><circle cx="12" cy="9" r="2.5"/></svg><span class="l-long">Mapa de riesgo</span><span class="l-short" aria-hidden="true">Mapa</span></button>
@@ -320,20 +440,41 @@ dialog[open]::backdrop{animation:fundido .2s ease-out}
       <div id="st-gen"></div>
       <div id="st-live"></div>
     </div>
+    <svg class="side-ilus" viewBox="0 0 220 170" aria-hidden="true" focusable="false" preserveAspectRatio="xMidYMax slice">
+      <path d="M0 84 L28 58 L48 70 L80 38 L112 70 L140 50 L170 66 L198 44 L220 56 V110 H0Z" fill="#3a7454"/>
+      <path d="M80 38 L92 50 L86 49 L80 53 L74 48 L68 50Z" fill="#e3efe7" opacity=".8"/>
+      <path d="M0 98 C40 72 80 82 110 92 S180 70 220 84 V170 H0Z" fill="#2c6b3f" opacity=".75"/>
+      <path d="M0 124 C50 100 110 114 150 104 S200 100 220 108 V170 H0Z" fill="#3f8a4c"/>
+      <path d="M0 148 C60 132 140 142 220 134 V170 H0Z" fill="#5aa95a"/>
+      <g transform="translate(118 74) scale(.95)"><path d="M15 9 L16 2 L18 7 L20 2 L21 9 C24 9 27 11 27 14 C27 16 25 16 23 16 L22 16 L22 34 C30 35 40 34 46 35 C50 35.5 52 38 51 42 C50.5 45 50 47 49 48 L49 68 L46 68 L45 52 L43 52 L42 68 L39 68 L39 50 C33 51 27 51 23 50 L23 68 L20 68 L19 53 L18 53 L17 68 L14 68 L14 48 C13 44 13 40 14 37 L14 18 C12 17 11 14 12 12 C12.5 10 14 9 15 9Z" fill="#e2b56b"/><circle cx="21.5" cy="12" r="1" fill="#5a3b14"/></g>
+      <g stroke="#2e6b2e" stroke-width="2" fill="none" stroke-linecap="round"><path d="M20 160l-3-14M26 160l2-16M32 160l5-12M180 158l-4-13M186 158l1-15M192 158l5-11M96 166l-3-10M102 166l2-12"/></g>
+    </svg>
   </aside>
 
   <main class="main">
-    <div class="top">
-      <svg class="mlogo" width="30" height="25" viewBox="0 0 44 36" aria-hidden="true"><path d="M2 34 L15 10 L22 20 L29 6 L42 34 Z" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linejoin="round"/><path d="M22 34c-5 0-7-4-5-8 1 2 3 2 3 0 0-3 2-5 4-6-1 3 2 4 2 7 1-1 1-2 1-3 2 2 3 4 2 6-1 3-4 4-7 4z" fill="#ff8a3d"/></svg>
-      <h1 id="titulo">Mapa de riesgo de incendios de vegetación</h1>
+    <header class="top cabecera">
+      <svg class="paisaje" viewBox="0 0 1200 130" aria-hidden="true" focusable="false" preserveAspectRatio="xMaxYMax slice">
+        <path d="M560 130 L640 98 L700 108 L780 76 L840 92 L930 30 L975 55 L1010 46 L1080 84 L1140 70 L1200 86 V130Z" fill="var(--mt-lejos)"/>
+        <path d="M930 30 L975 55 L962 58 L950 52 L938 62 L924 54 L910 58 L894 55Z" fill="var(--nieve)"/>
+        <path d="M780 76 L801 83 L792 86 L782 82 L772 86 L763 83Z" fill="var(--nieve)"/>
+        <path d="M1010 46 L1031 57 L1021 59 L1011 55 L1001 59 L989 52Z" fill="var(--nieve)"/>
+        <path d="M420 130 C520 108 620 118 720 106 S900 98 1000 110 S1140 102 1200 108 V130Z" fill="var(--mt-medio)"/>
+        <path d="M0 130 V124 C260 116 520 124 760 118 S1060 114 1200 120 V130Z" fill="var(--mt-cerca)"/>
+      </svg>
+      <div class="tit">
+        <svg class="tit-ic" viewBox="0 0 24 24" aria-hidden="true"><defs><linearGradient id="gfuego" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ff7a2f"/><stop offset="1" stop-color="#d4281f"/></linearGradient></defs><path d="M12 22.5c-4.6 0-7.4-3.1-7.4-7 0-3.1 1.9-5.3 3.4-6.8.3 1.6 1.3 2.6 2.3 2.8-.6-3.6 1.3-7 4-9.1-.4 3 .8 5 2.2 6.8 1.8 2.2 2.9 4.1 2.9 6.6 0 3.8-2.8 6.7-7.4 6.7z" fill="url(#gfuego)"/><path d="M12 20.6c-2 0-3.2-1.4-3.2-3.1 0-1.6 1-2.6 1.8-3.4.2 1 .8 1.6 1.5 1.6 0-1.6.9-2.9 1.9-3.6.1 1.6 1.6 2.8 1.6 4.7 0 2.3-1.6 3.8-3.6 3.8z" fill="#ffc83d"/></svg>
+        <div><h1 id="titulo">Mapa de riesgo de incendios de vegetación</h1>
+        <p class="sub">Monitoreo, análisis y alertas tempranas en la región Puno</p></div>
+      </div>
       <label class="ctl"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 21s-7-6.2-7-12a7 7 0 0 1 14 0c0 5.8-7 12-7 12z"/></svg>
         <select id="zona" aria-label="Zona"></select></label>
       <span class="ctl"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg><span id="hoy"></span></span>
-    </div>
+    </header>
     <div class="banner" id="banner" hidden></div>
 
     <!-- INICIO / MAPA -->
     <section class="view home" id="v-inicio">
+      <div class="izq">
       <div class="card mapcard">
         <div id="map" role="application" aria-label="Mapa de riesgo de incendios por distrito"></div>
         <div class="legend" id="legend">
@@ -342,19 +483,23 @@ dialog[open]::backdrop{animation:fundido .2s ease-out}
           <div class="body" id="leg-body">
             <div id="leg-niveles"></div>
             <hr>
-            <label class="tg"><span class="ic">🔥</span><span>Focos activos (7 días)</span><input type="checkbox" class="sw" data-capa="activos" checked></label>
-            <label class="tg"><span class="ic" style="color:var(--muyalto)">●</span><span>Incendios históricos (12 m)</span><input type="checkbox" class="sw" data-capa="historicos" checked></label>
-            <label class="tg"><span class="ic">🌾</span><span>Áreas agrícolas</span><input type="checkbox" class="sw" data-capa="agricola"></label>
-            <label class="tg"><span class="ic">🌿</span><span>Pastizales</span><input type="checkbox" class="sw" data-capa="pastizal"></label>
-            <label class="tg"><span class="ic">🏠</span><span>Comunidades</span><input type="checkbox" class="sw" data-capa="lugares"></label>
-            <label class="tg"><span class="ic">🐾</span><span>Biodiversidad</span><input type="checkbox" class="sw" data-capa="protegidas" checked></label>
-            <label class="tg"><span class="ic">🛰</span><span>Imagen satelital de ayer (NASA)</span><input type="checkbox" class="sw" data-capa="nasa" aria-describedby="nasa-ayuda"></label>
+            <h3 class="cap">Capas del mapa</h3>
+            <label class="tg"><span class="ic" data-ic="fuego"></span><span id="lbl-activos">Focos activos (7 días)</span><input type="checkbox" class="sw" data-capa="activos" checked></label>
+            <label class="tg"><span class="ic" data-ic="historico"></span><span>Incendios históricos (12 m)</span><input type="checkbox" class="sw" data-capa="historicos" checked></label>
+            <label class="tg"><span class="ic" data-ic="brote"></span><span>Áreas agrícolas</span><input type="checkbox" class="sw" data-capa="agricola"></label>
+            <label class="tg"><span class="ic" data-ic="pasto"></span><span>Pastizales</span><input type="checkbox" class="sw" data-capa="pastizal"></label>
+            <label class="tg"><span class="ic ic-gente" data-ic="gente"></span><span>Comunidades</span><input type="checkbox" class="sw" data-capa="lugares"></label>
+            <label class="tg"><span class="ic" data-ic="huella"></span><span>Biodiversidad</span><input type="checkbox" class="sw" data-capa="protegidas" checked></label>
+            <label class="tg"><span class="ic" data-ic="satelite"></span><span>Imagen satelital de ayer (NASA)</span><input type="checkbox" class="sw" data-capa="nasa" aria-describedby="nasa-ayuda"></label>
             <p class="ayuda" id="nasa-ayuda" hidden></p>
           </div>
         </div>
       </div>
+      <div class="kpirow" id="kpirow"></div>
+      </div>
       <div class="right" id="right">
         <div class="card alert" id="alert-card"></div>
+        <button class="btn ghost volver" id="volver" hidden><span aria-hidden="true">→</span><span id="volver-t">Volver a toda la región</span></button>
         <div class="card pad"><h2>Zonas en riesgo</h2><div class="zones" id="zones"></div></div>
         <div class="card pad"><h2 id="now-t">Condiciones actuales</h2><div class="now" id="now"></div><div class="days" id="days"></div><div class="small muted" id="now-src" style="margin-top:8px"></div></div>
       </div>
@@ -382,7 +527,7 @@ dialog[open]::backdrop{animation:fundido .2s ease-out}
             <div style="display:flex;gap:8px"><button class="btn ghost" id="dl-csv">⬇ CSV</button><button class="btn ghost" id="imprimir-hoja-r" title="Imprime la hoja de alertas para defensa civil">🖨 Hoja de alertas</button></div>
           </div>
           <div class="tbl"><table>
-            <thead><tr><th>Distrito</th><th>Provincia</th><th class="num">Prob. mes</th><th>Modelo</th><th>Alerta final</th><th class="num">Focos 48 h</th></tr></thead>
+            <thead><tr><th>Distrito</th><th class="c-sec">Provincia</th><th class="num">Prob. mes</th><th class="c-sec">Modelo</th><th>Alerta final</th><th class="num">Focos 48 h</th></tr></thead>
             <tbody id="rows"></tbody></table></div>
         </div>
         <div class="card pad">
@@ -461,6 +606,45 @@ const pct = p => Math.round(p*100)+'%';
 const esc = s => String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const fmt1 = v => v==null?'–':(Math.round(v*10)/10).toString();
 const byU = Object.fromEntries(D.distritos.map(d=>[d.ubigeo,d]));
+// ---------- Iconos e ilustraciones (SVG en línea, decorativos) ----------
+const svgI=(c,vb='0 0 24 24')=>`<svg viewBox="${vb}" aria-hidden="true" focusable="false">${c}</svg>`;
+const ICON={
+  fuego:svgI('<path d="M12 22c-4.4 0-7-3-7-6.6 0-3 1.8-5 3.2-6.4.3 1.5 1.2 2.4 2.2 2.6-.6-3.4 1.2-6.6 3.8-8.6-.4 2.8.8 4.7 2.1 6.4C17.8 11.2 19 13 19 15.4 19 19 16.4 22 12 22z" fill="#f05a24"/><path d="M12 20.4c-1.9 0-3-1.3-3-2.9 0-1.5 1-2.5 1.7-3.2.2 1 .8 1.5 1.4 1.5 0-1.5.8-2.7 1.8-3.4.1 1.5 1.5 2.6 1.5 4.4 0 2.2-1.5 3.6-3.4 3.6z" fill="#ffc83d"/>'),
+  historico:svgI('<circle cx="7" cy="9" r="3" fill="#e0362c"/><circle cx="16" cy="7" r="2.4" fill="#e0362c" opacity=".8"/><circle cx="14" cy="16" r="3.4" fill="#e0362c" opacity=".9"/><circle cx="6" cy="18" r="1.8" fill="#e0362c" opacity=".7"/>'),
+  brote:svgI('<path d="M12 21v-8" stroke="#2e8b3e" stroke-width="2" stroke-linecap="round"/><path d="M12 13c0-4.2 3-6.6 7.5-6.6 0 4.2-3 6.6-7.5 6.6z" fill="#4caf50"/><path d="M12 15.5c0-3.4-2.6-5.4-6.4-5.4 0 3.4 2.6 5.4 6.4 5.4z" fill="#7cc35b"/>'),
+  pasto:svgI('<path d="M3 21l2.6-9 1.4 9M8 21l2-12.5L12 21M12.5 21l2.3-10.5L16.5 21M17 21l3-8 1 8" stroke="#3a8f3e" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>'),
+  gente:svgI('<circle cx="8" cy="7.5" r="3.2" fill="currentColor"/><circle cx="16.8" cy="8.6" r="2.6" fill="currentColor" opacity=".85"/><path d="M2 20.5c0-3.8 2.7-6.4 6-6.4s6 2.6 6 6.4z" fill="currentColor"/><path d="M13.6 20.5c.3-3.2 1.9-5.2 3.9-5.2s4 2 4.4 5.2z" fill="currentColor" opacity=".85"/>'),
+  huella:svgI('<g fill="#2e8b57"><ellipse cx="12" cy="16" rx="4.6" ry="3.9"/><circle cx="5.8" cy="10.6" r="2.1"/><circle cx="9.5" cy="6.4" r="2.1"/><circle cx="14.5" cy="6.4" r="2.1"/><circle cx="18.2" cy="10.6" r="2.1"/></g>'),
+  satelite:svgI('<g fill="#5b6770"><path d="M10.2 7.2l6.6 6.6-3 3-6.6-6.6z"/><path d="M3 4.6L5.6 2l4 4L7 8.6zM16.4 18l2.6-2.6 4 4-2.6 2.6z"/></g><path d="M5.5 15a4.5 4.5 0 0 0 4.5 4.5" stroke="#5b6770" stroke-width="1.8" fill="none" stroke-linecap="round"/>'),
+  hoja:svgI('<path d="M20.5 3.5C9.5 3.5 4 9 4 16c0 1.8.4 3 1 4 1.2-5 5-8.8 10-10.8-4.2 3-7 6.2-8 10.8 9.6 1 13.5-6.4 13.5-16.5z" fill="#3a9a4a"/>'),
+  termometro:svgI('<path d="M10 4.2a2 2 0 0 1 4 0v9.2a4 4 0 1 1-4 0z" fill="none" stroke="#d64545" stroke-width="1.9"/><circle cx="12" cy="17" r="2.1" fill="#d64545"/><path d="M12 9v7" stroke="#d64545" stroke-width="2" stroke-linecap="round"/>'),
+  viento:svgI('<path d="M3 9h11.2a3 3 0 1 0-3-3M3 13h15a3 3 0 1 1-3 3M3 17h7.5" fill="none" stroke="#3b82c4" stroke-width="2" stroke-linecap="round"/>'),
+  gota:svgI('<path d="M12 3c3.1 4.1 6.2 7.5 6.2 11.2a6.2 6.2 0 0 1-12.4 0C5.8 10.5 8.9 7.1 12 3z" fill="#3b9be0"/><path d="M9 14.5a3 3 0 0 0 2.4 3" stroke="#fff" stroke-width="1.5" fill="none" stroke-linecap="round" opacity=".8"/>'),
+  aviso:svgI('<path d="M12 2.5 1.5 21h21z" fill="#f2a516"/><path d="M11 9h2v6h-2zM11 16.5h2v2h-2z" fill="#3a2600"/>'),
+  avisoBlanco:svgI('<path d="M12 2.5 1.5 21h21z" fill="currentColor"/><path d="M11 9h2v6h-2zM11 16.5h2v2h-2z" fill="var(--alert)"/>'),
+  expandir:svgI('<path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/>'),
+  contraer:svgI('<path d="M9 4v5H4M15 4v5h5M9 20v-5H4M15 20v-5h5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/>')
+};
+const ILUS_LLAMAS=`<svg class="llamas" viewBox="0 0 120 90" aria-hidden="true" focusable="false">
+  <path d="M70 90c-14 0-22-9-22-21 0-10 6-16 11-21 1 5 4 8 7 9-2-11 4-21 12-28-1 9 3 15 7 20 6 7 9 13 9 20 0 12-9 21-24 21z" fill="#f26b2a" opacity=".55"/>
+  <path d="M100 90c-9 0-14-6-14-13 0-6 4-10 7-13 .5 3 2.5 5 4.5 5.5-1-6 2-12 7-16-.5 5 2 9 4 12 4 4 6 8 6 12 0 7-6 12.5-14.5 12.5z" fill="#e53935" opacity=".5"/>
+  <path d="M70 90c-6 0-10-4-10-9 0-4 3-7 5-9 .3 2 1.5 3 3 3 0-4 2-7 4.5-9 .3 4 4 6.5 4 11 0 7-3 13-6.5 13z" fill="#ffb02e" opacity=".75"/>
+  <path d="M28 90l4-14 2 14M37 90l3-18 3 18M46 90l2-10 2 10M108 90l3-12 2 12" stroke="#8a5a2b" stroke-width="2" fill="none" opacity=".55"/></svg>`;
+const ILUS_PASTO=`<svg class="kart" viewBox="0 0 140 70" aria-hidden="true" focusable="false" preserveAspectRatio="xMaxYMax meet">
+  <path d="M0 70 C30 52 70 48 140 40 V70Z" fill="#7cc35b" opacity=".5"/>
+  <path d="M40 70 C70 58 100 56 140 54 V70Z" fill="#4f9d45" opacity=".75"/>
+  <g stroke="#2e7d32" stroke-width="2.2" fill="none" stroke-linecap="round"><path d="M86 66l-6-22M92 66l2-26M98 66l7-20M104 66l-2-16M112 66l8-24M118 66l-1-20M124 66l9-18M130 66l3-14"/></g></svg>`;
+
+// Rango de fechas legible: «5–12 oct.» o «28 sept. – 4 oct.»
+function rangoFechas(fs){
+  if(!fs.length) return '';
+  const s=fs.slice().sort(), a=new Date(s[0]+'T12:00'), b=new Date(s[s.length-1]+'T12:00');
+  const mes=x=>x.toLocaleDateString('es-PE',{month:'short'}).replace('.','').toLowerCase()+'.';
+  return a.getMonth()===b.getMonth()&&a.getFullYear()===b.getFullYear()?(a.getDate()===b.getDate()?`${b.getDate()} ${mes(b)}`:`${a.getDate()}–${b.getDate()} ${mes(b)}`):`${a.getDate()} ${mes(a)} – ${b.getDate()} ${mes(b)}`;
+}
+const FECHAS_FOCOS=D.capas.focos_activos.map(p=>String(p[2]).slice(0,10)).filter(f=>/^\d{4}-\d\d-\d\d$/.test(f));
+const RANGO_FOCOS=rangoFechas(FECHAS_FOCOS);
+
 const store = {get(k){try{return localStorage.getItem('nawpaq.'+k)}catch(e){return null}}, set(k,v){try{localStorage.setItem('nawpaq.'+k,v)}catch(e){}}};
 let lang = store.get('lang')||'es', zona = '', sel = null, vista = 'inicio', filtroA = 'alerta';
 let actual = {}, cargandoVivo = false;   // condiciones actuales en vivo por ubigeo
@@ -515,7 +699,16 @@ if(D.fuentes&&D.fuentes.firms_anio_en_curso===false){ban.hidden=false;ban.innerH
 // ---------- Mapa ----------
 const sinMovimiento=matchMedia('(prefers-reduced-motion: reduce)').matches;
 const map=L.map('map',{zoomControl:false,zoomSnap:.25,zoomAnimation:!sinMovimiento,fadeAnimation:!sinMovimiento,markerZoomAnimation:!sinMovimiento}).setView([-15,-70],7);
+// Pantalla completa del mapa (clase CSS: funciona también en iPhone); se sale con Esc o el mismo botón
+function pantalla(on){const mc=document.querySelector('.mapcard'),b=document.querySelector('.pant');mc.classList.toggle('max',on);document.body.classList.toggle('sin-scroll',on);
+  if(b){b.innerHTML=on?ICON.contraer:ICON.expandir;b.setAttribute('aria-label',on?'Salir de pantalla completa':'Ver el mapa a pantalla completa');b.setAttribute('aria-pressed',on)}
+  setTimeout(()=>map.invalidateSize(),60)}
+const Pant=L.Control.extend({onAdd(){const b=L.DomUtil.create('button','pant leaflet-bar');b.type='button';b.innerHTML=ICON.expandir;
+  b.setAttribute('aria-label','Ver el mapa a pantalla completa');b.setAttribute('aria-pressed','false');b.title='Pantalla completa';
+  L.DomEvent.disableClickPropagation(b);b.onclick=()=>pantalla(!document.querySelector('.mapcard').classList.contains('max'));return b}});
+new Pant({position:'bottomright'}).addTo(map);
 L.control.zoom({position:'bottomright'}).addTo(map);
+addEventListener('keydown',e=>{if(e.key==='Escape'&&document.querySelector('.mapcard.max')&&!document.getElementById('dlg').open)pantalla(false)});
 const bases={
   sat:[L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',{maxZoom:18,attribution:'Imágenes © Esri, Maxar, Earthstar Geographics'}),
        L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}',{maxZoom:18,opacity:.9})],
@@ -531,12 +724,13 @@ new Norte({position:'topright'}).addTo(map);
 L.marker([-15.75,-69.55],{interactive:false,icon:L.divIcon({className:'lago',html:'Lago Titicaca',iconSize:[110,20],iconAnchor:[55,10]})}).addTo(map);
 
 const estilo=f=>{const d=byU[f.properties.ubigeo];const vis=d&&enZona(d);
-  return {color:sel===f.properties.ubigeo?'#ffffff':'rgba(255,255,255,.75)',weight:sel===f.properties.ubigeo?3:.8,
-          fillColor:d?hex(d.nivel_final):'#888',fillOpacity:vis?.55:.12,opacity:vis?1:.35}};
+  return {color:sel===f.properties.ubigeo?'#ffffff':'rgba(255,255,255,.9)',weight:sel===f.properties.ubigeo?3:1,
+          fillColor:d?hex(d.nivel_final):'#888',fillOpacity:vis?.74:.12,opacity:vis?1:.35}};
 const capaDist=L.geoJSON(D.geojson,{style:estilo,onEachFeature:(f,l)=>{
   const d=byU[f.properties.ubigeo];
   l.bindTooltip(()=>{const x=byU[f.properties.ubigeo];return x?`<b>${esc(x.distrito)}</b><br>${x.nivel_final}${x.nivel_final!==x.nivel?` (modelo: ${x.nivel})`:''} · ${pct(x.probabilidad)}`:esc(f.properties.distrito)},{className:'dist',sticky:true});
   l.on('click',()=>{if(d)seleccionar(d.ubigeo,false)});
+  l.on('tooltipopen',()=>{if(f.properties.ubigeo===sel)l.closeTooltip()});
 }}).addTo(map);
 const capaPorU={}; capaDist.eachLayer(l=>capaPorU[l.feature.properties.ubigeo]=l);
 
@@ -552,10 +746,10 @@ capaNasa.on('tileerror',()=>{if(iGibs<GIBS.length-1){iGibs++;capaNasa.setUrl(url
 const capas={
   nasa:capaNasa,
   historicos:L.layerGroup(D.capas.focos_12m.map(p=>L.circleMarker([p[0],p[1]],{renderer:rend,radius:2.5,weight:0,fillColor:'#ff3b1f',fillOpacity:.75}).bindTooltip(`Foco de calor · ${esc(p[2]).slice(0,10)}`))),
-  activos:L.layerGroup(D.capas.focos_activos.map(p=>L.marker([p[0],p[1]],{icon:L.divIcon({className:'',html:'<svg class="flame" width="22" height="26" viewBox="0 0 24 28"><path d="M12 27c-6 0-9-4.4-9-9 0-4 2.4-6.7 4.3-8.6.4 2 1.6 3.3 3 3.6C9.6 8.3 12 4 15.5 1c-.6 3.7 1 6.3 2.8 8.6C20.3 12 21 14.4 21 17.5 21 23 17.5 27 12 27z" fill="#ff5a1f" stroke="#fff" stroke-width="1.5"/><path d="M12 25c-2.6 0-4-1.9-4-4 0-2 1.3-3.4 2.3-4.3.2 1.3 1 2 1.9 2 0-2 1-3.6 2.4-4.6.1 2 2 3.5 2 6 0 3-2 4.9-4.6 4.9z" fill="#ffd23f"/></svg>',iconSize:[22,26],iconAnchor:[11,24]})})
+  activos:L.layerGroup(D.capas.focos_activos.map(p=>L.marker([p[0],p[1]],{icon:L.divIcon({className:'',html:'<svg class="flame" width="16" height="19" viewBox="0 0 24 28"><path d="M12 27c-6 0-9-4.4-9-9 0-4 2.4-6.7 4.3-8.6.4 2 1.6 3.3 3 3.6C9.6 8.3 12 4 15.5 1c-.6 3.7 1 6.3 2.8 8.6C20.3 12 21 14.4 21 17.5 21 23 17.5 27 12 27z" fill="#ff5a1f" stroke="#fff" stroke-width="1.5"/><path d="M12 25c-2.6 0-4-1.9-4-4 0-2 1.3-3.4 2.3-4.3.2 1.3 1 2 1.9 2 0-2 1-3.6 2.4-4.6.1 2 2 3.5 2 6 0 3-2 4.9-4.6 4.9z" fill="#ffd23f"/></svg>',iconSize:[16,19],iconAnchor:[8,18]})})
       .bindPopup(`<b>Foco activo</b><br>${esc(p[2])} ${String(p[3]).padStart(4,'0').replace(/(\d\d)(\d\d)/,'$1:$2')} UTC<br>Sensor: ${esc(p[4])}<br>Distrito: ${esc(byU[p[5]]?.distrito||'')}`))),
   lugares:L.layerGroup(D.capas.lugares.map(p=>L.circleMarker([p[0],p[1]],{renderer:rend,radius:p[3]==='village'?3:5,color:'#fff',weight:1,fillColor:'#2f80ed',fillOpacity:.9}).bindTooltip(`${esc(p[2])} (${p[3]==='village'?'centro poblado':p[3]==='town'?'ciudad':'capital'})`))),
-  protegidas:L.layerGroup(D.capas.protegidas.map(a=>L.polyline(a.lineas.map(r=>r.map(([x,y])=>[y,x])),{color:'#7CFC9A',weight:2,dashArray:'5 4'}).bindTooltip(esc(a.nombre),{sticky:true}))),
+  protegidas:L.layerGroup(D.capas.protegidas.map(a=>L.polyline(a.lineas.map(r=>r.map(([x,y])=>[y,x])),{color:'#c9f7d6',weight:1.5,opacity:.9,dashArray:'4 4'}).bindTooltip(esc(a.nombre),{sticky:true}))),
   agricola:L.geoJSON(D.geojson,{filter:f=>(byU[f.properties.ubigeo]?.territorio?.pct_agricola||0)>=10,style:{color:'#ffe066',weight:2,fill:false,dashArray:'2 4'},interactive:false}),
   pastizal:L.geoJSON(D.geojson,{filter:f=>(byU[f.properties.ubigeo]?.territorio?.pct_pastizal||0)>=50,style:{color:'#b6f07a',weight:2,fill:false,dashArray:'6 3'},interactive:false}),
 };
@@ -569,6 +763,8 @@ document.querySelectorAll('.sw[data-capa]').forEach(cb=>{
 });
 const movil=matchMedia('(max-width:760px)');
 function legenda(abrir){const lg=document.getElementById('legend');lg.classList.toggle('closed',!abrir);document.getElementById('leg-min').setAttribute('aria-expanded',abrir)}
+document.querySelectorAll('.ic[data-ic]').forEach(s=>s.innerHTML=ICON[s.dataset.ic]||'');
+if(RANGO_FOCOS) document.getElementById('lbl-activos').textContent=`Focos activos (${RANGO_FOCOS})`;
 document.getElementById('leg-min').onclick=()=>legenda(document.getElementById('legend').classList.contains('closed'));
 legenda(!movil.matches);   // en el celular la leyenda empieza plegada
 document.getElementById('leg-niveles').innerHTML=N.slice().reverse().map(n=>`<div class="lv"><i style="background:${col(n)}"></i>${n}${lang==='qu'?` · ${D.nivel_qu[n]}`:''}</div>`).join('');
@@ -589,24 +785,23 @@ function zonaTexto(ds){
   return t>.62?'la zona norte':t<.38?'la zona sur':'la zona centro';
 }
 function alertaCard(){
-  const el=document.getElementById('alert-card');
-  const lugar=zona?`la provincia ${zona}`:'Puno';
-  if(sel){ // ficha corta del distrito
+  const el=document.getElementById('alert-card'), vol=document.getElementById('volver');
+  const lugar=zona?`la provincia ${zona}`:'Puno', tit=esc(D.titulo[lang]);
+  vol.hidden=!sel; document.getElementById('volver-t').textContent=`Volver a ${zona?'la provincia':'toda la región'}`;
+  if(sel){ // resumen del distrito seleccionado
     const d=byU[sel], al=conAlerta(d);
     el.className='card alert'+(al?'':' ok');
-    el.innerHTML=`<div class="hd">${al?'⚠':'✓'} ${al?D.titulo[lang]:'Sin alerta activa'}</div><div class="bd">
-      <p><b>${esc(d.distrito)}</b> · ${esc(d.provincia)}<br>Riesgo <b>${d.nivel_final.toLowerCase()}</b>${lang==='qu'?` (${D.nivel_qu[d.nivel_final]})`:''} · probabilidad de incendio en ${esc(D.mes_pronostico)}: <b>${pct(d.probabilidad)}</b></p>
+    el.innerHTML=`<div class="hd">${al?ICON.avisoBlanco:'✓'} ${al?tit:'Sin alerta activa'}</div><div class="bd">${al?ILUS_LLAMAS:''}
+      <p><b>${esc(d.distrito)} · ${esc(d.provincia)}</b><br>Riesgo <b>${esc(d.nivel_final.toLowerCase())}</b>${lang==='qu'?` (${esc(D.nivel_qu[d.nivel_final])})`:''} · Probabilidad de incendio en ${esc(D.mes_pronostico)}: <b>${pct(d.probabilidad)}</b></p>
       ${d.motivos_alerta.length?`<p class="small">${d.motivos_alerta.map(esc).join('<br>')}</p>`:''}
-      <button class="btn" id="ver-rec">Ver recomendaciones <span>→</span></button>
-      <button class="btn ghost" id="ver-todo" style="width:100%">← Volver a ${esc(zona?'la provincia':'toda la región')}</button></div>`;
+      <button class="btn rec" id="ver-rec">Ver recomendaciones <span aria-hidden="true">→</span></button></div>`;
     document.getElementById('ver-rec').onclick=()=>ficha(sel);
-    document.getElementById('ver-todo').onclick=()=>{sel=null;encuadrar();render()};
     return;
   }
   const ds=distZona(), al=ds.filter(conAlerta);
   if(!al.length){
     el.className='card alert ok';
-    el.innerHTML=`<div class="hd">✓ Sin alertas activas</div><div class="bd"><p>No hay distritos en nivel alto o muy alto en ${esc(lugar)} para ${esc(D.mes_pronostico)}. Mantén las buenas prácticas y vigila las quemas.</p><button class="btn" id="ver-rec">Ver recomendaciones <span>→</span></button></div>`;
+    el.innerHTML=`<div class="hd">✓ Sin alertas activas</div><div class="bd"><p>No hay distritos en nivel alto o muy alto en ${esc(lugar)} para ${esc(D.mes_pronostico)}. Mantén las buenas prácticas y vigila las quemas.</p><button class="btn rec" id="ver-rec">Ver recomendaciones <span aria-hidden="true">→</span></button></div>`;
   } else {
     const muy=al.filter(d=>d.nivel_final==='Muy alto');
     const viento=Math.max(0,...al.flatMap(d=>(d.tiempo||[]).slice(0,3).map(x=>x.viento_max||0)));
@@ -614,11 +809,11 @@ function alertaCard(){
     const focos=al.reduce((s,d)=>s+d.focos_48h,0);
     const top=al.slice().sort((a,b)=>N.indexOf(b.nivel_final)-N.indexOf(a.nivel_final)||b.probabilidad-a.probabilidad).slice(0,3).map(d=>d.distrito);
     el.className='card alert';
-    el.innerHTML=`<div class="hd">⚠ ${D.titulo[lang]==='Alerta orientativa de incendio'?'Alerta de incendio':D.titulo[lang]}</div><div class="bd">
+    el.innerHTML=`<div class="hd">${ICON.avisoBlanco} ${tit}</div><div class="bd">${ILUS_LLAMAS}
       <p>Riesgo ${muy.length?'muy alto':'alto'} en ${esc(zonaTexto(al))} de ${esc(lugar)}: <b>${al.length}</b> distrito(s) con alerta, entre ellos ${top.map(esc).join(', ')}.
       ${secos?`Posible propagación en los próximos días si continúan el aire seco y el viento (hasta ${Math.round(viento)} km/h).`:''}
       ${focos?`<br><b>${focos}</b> foco(s) activo(s) detectado(s) por satélite en las últimas 48 h.`:''}</p>
-      <button class="btn" id="ver-rec">Ver recomendaciones <span>→</span></button></div>`;
+      <button class="btn rec" id="ver-rec">Ver recomendaciones <span aria-hidden="true">→</span></button></div>`;
   }
   document.getElementById('ver-rec').onclick=()=>ficha(null);
 }
@@ -630,25 +825,77 @@ function zonas(){
   const com=D.capas.lugares.filter(p=>setU.has(p[4]));
   const comD=new Set(com.map(p=>p[4])).size;
   const bio=D.capas.protegidas.filter(a=>a.lineas.some(r=>r.some(([x,y])=>al.some(d=>dentro(d.ubigeo,x,y))))).length;
-  const z=[['🌾','Cultivos',`${cult} distrito${cult===1?'':'s'}`],['🌿','Pastizales',`${past} distrito${past===1?'':'s'}`],
-           ['🏠','Comunidades',com.length?`${com.length} centros poblados en ${comD} distrito${comD===1?'':'s'}`:`${al.length?al.length+' distrito'+(al.length===1?'':'s'):'0 distritos'}`],
-           ['🐾','Biodiversidad',`${bio} área${bio===1?'':'s'} protegida${bio===1?'':'s'}`]];
+  const z=[[ICON.brote,'Cultivos',`${cult} distrito${cult===1?'':'s'}`],[ICON.pasto,'Pastizales',`${past} distrito${past===1?'':'s'}`],
+           [ICON.gente,'Comunidades',com.length?`${com.length} centros poblados en ${comD} distrito${comD===1?'':'s'}`:`${al.length?al.length+' distrito'+(al.length===1?'':'s'):'0 distritos'}`],
+           [ICON.hoja,'Biodiversidad',`${bio} área${bio===1?'':'s'} protegida${bio===1?'':'s'}`]];
   document.getElementById('zones').innerHTML=(al.length?'':`<div class="small muted">Sin distritos en alerta en esta zona.</div>`)+
-    z.map(([i,t,v])=>`<div class="zone"><span class="zi">${i}</span><span><b>${t}:</b> ${v}</span></div>`).join('');
+    z.map(([i,t,v])=>`<div class="zone"><span class="zi${t==='Comunidades'?' zr':''}">${i}</span><span><b>${t}:</b> ${v}</span></div>`).join('');
 }
 // punto dentro de polígono (para cruzar áreas protegidas con distritos en alerta)
 const geomU=Object.fromEntries(D.geojson.features.map(f=>[f.properties.ubigeo,f.geometry]));
 function dentro(u,x,y){const g=geomU[u];if(!g)return false;const polys=g.type==='Polygon'?[g.coordinates]:g.coordinates;
   return polys.some(p=>{let c=false;const r=p[0];for(let i=0,j=r.length-1;i<r.length;j=i++){const[xi,yi]=r[i],[xj,yj]=r[j];if((yi>y)!==(yj>y)&&x<(xj-xi)*(y-yi)/(yj-yi)+xi)c=!c}return c})}
 
+// ---------- Tarjetas bajo el mapa (datos reales del pronóstico) ----------
+const siluetaCache={};
+function silueta(ds,alertas){
+  const clave=(zona||'*')+'|'+ds.length+'|'+alertas.size;
+  if(siluetaCache[clave]) return siluetaCache[clave];
+  const anillos=[];
+  ds.forEach(d=>{const g=geomU[d.ubigeo];if(!g)return;(g.type==='Polygon'?[g.coordinates]:g.coordinates).forEach(p=>anillos.push([d.ubigeo,p[0]]))});
+  if(!anillos.length) return '';
+  let x0=1e9,x1=-1e9,y0=1e9,y1=-1e9;
+  anillos.forEach(([,r])=>r.forEach(([x,y])=>{x0=Math.min(x0,x);x1=Math.max(x1,x);y0=Math.min(y0,y);y1=Math.max(y1,y)}));
+  const W=120,H=80,k=Math.min(W/((x1-x0)*.966||1),H/((y1-y0)||1));
+  const px=x=>((x-x0)*.966*k).toFixed(1), py=y=>((y1-y)*k).toFixed(1);
+  const camino=r=>'M'+r.filter((_,i)=>i%2===0||i===r.length-1).map(([x,y])=>px(x)+','+py(y)).join('L')+'Z';
+  const svg=`<svg class="kart sil" viewBox="0 0 ${W} ${H}" aria-hidden="true" focusable="false" preserveAspectRatio="xMaxYMax meet">`+
+    anillos.map(([u,r])=>`<path d="${camino(r)}" fill="var(${alertas.has(u)?'--sil2':'--sil1'})" stroke="var(--panel)" stroke-width=".6"/>`).join('')+'</svg>';
+  return siluetaCache[clave]=svg;
+}
+function kpis(){
+  const el=document.getElementById('kpirow'); if(!el) return;
+  const ds=distZona(), al=ds.filter(conAlerta), setU=new Set(al.map(d=>d.ubigeo));
+  const muy=al.filter(d=>d.nivel_final==='Muy alto').length;
+  // 1) Focos activos detectados por satélite en el periodo que traen los datos
+  const fa=D.capas.focos_activos.filter(p=>{const d=byU[p[5]];return d&&enZona(d)});
+  const dias=[]; if(FECHAS_FOCOS.length){const s=FECHAS_FOCOS.slice().sort();
+    for(let t=new Date(s[0]+'T12:00'),f=new Date(s[s.length-1]+'T12:00');t<=f;t.setDate(t.getDate()+1)) dias.push(t.toISOString().slice(0,10))}
+  const porDia=dias.map(f=>fa.filter(p=>String(p[2]).slice(0,10)===f).length);
+  let grafico='';
+  if(porDia.length>1){const W=130,H=54,mx=Math.max(1,...porDia),X=i=>(i*(W-4)/(porDia.length-1)+2).toFixed(1),Y=v=>(H-4-v/mx*(H-10)).toFixed(1);
+    const l=porDia.map((v,i)=>`${i?'L':'M'}${X(i)},${Y(v)}`).join('');
+    grafico=`<svg class="kart" viewBox="0 0 ${W} ${H}" aria-hidden="true" focusable="false" preserveAspectRatio="xMaxYMax meet"><defs><linearGradient id="gk" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#e53935" stop-opacity=".35"/><stop offset="1" stop-color="#e53935" stop-opacity="0"/></linearGradient></defs>
+      <path d="${l}L${X(porDia.length-1)},${H}L${X(0)},${H}Z" fill="url(#gk)"/><path d="${l}" fill="none" stroke="#e53935" stroke-width="2.2" stroke-linejoin="round"/></svg>`}
+  const resumenDias=dias.length?' Focos por día: '+dias.map((f,i)=>`${new Date(f+'T12:00').getDate()}: ${porDia[i]}`).join(', ')+'.':'';
+  // 3) Comunidades (centros poblados) en distritos con alerta
+  const com=D.capas.lugares.filter(p=>setU.has(p[4])), comD=new Set(com.map(p=>p[4])).size;
+  el.innerHTML=`
+    <section class="card kcard" aria-labelledby="k1">
+      <span class="ki">${ICON.fuego}</span><h3 id="k1">Focos activos</h3>
+      <div class="ks">${RANGO_FOCOS?`detectados del ${esc(RANGO_FOCOS)}`:'sin datos de focos'}</div>
+      <div class="kn">${fa.length}</div>${grafico}<span class="sr">${resumenDias}</span>
+    </section>
+    <section class="card kcard" aria-labelledby="k2">
+      <span class="ki">${ICON.aviso}</span><h3 id="k2">Distritos con alerta</h3>
+      <div class="ks">${muy} en Muy alto</div>
+      <div class="kn">${al.length}</div>${silueta(ds,setU)}
+    </section>
+    <section class="card kcard" aria-labelledby="k3">
+      <span class="ki">${ICON.gente}</span><h3 id="k3">Comunidades en alerta</h3>
+      <div class="ks">${D.capas.lugares.length?`centros poblados en ${comD} distrito${comD===1?'':'s'} con alerta`:'sin datos de centros poblados'}</div>
+      <div class="kn">${D.capas.lugares.length?com.length:'–'}</div>${ILUS_PASTO}
+    </section>`;
+}
+
 function condiciones(){
   const ds=distZona().slice().sort((a,b)=>N.indexOf(b.nivel_final)-N.indexOf(a.nivel_final)||b.probabilidad-a.probabilidad);
   const d=sel?byU[sel]:ds[0]; if(!d) return;
   const c=actual[d.ubigeo];
   document.getElementById('now-t').textContent='Condiciones actuales';
-  document.getElementById('now').innerHTML=`<div><span>🌡 Temperatura</span><b>${c?fmt1(c.temperature_2m)+'°C':'–'}</b></div>
-    <div><span>💨 Viento</span><b>${c?Math.round(c.wind_speed_10m):'–'}</b><span>km/h</span></div>
-    <div><span>💧 Humedad</span><b>${c?Math.round(c.relative_humidity_2m)+'%':'–'}</b></div>`;
+  document.getElementById('now').innerHTML=`<div><span class="nl">${ICON.termometro}Temperatura</span><b>${c?fmt1(c.temperature_2m)+' °C':'–'}</b></div>
+    <div><span class="nl">${ICON.viento}Viento</span><b>${c?Math.round(c.wind_speed_10m):'–'}</b><span>km/h</span></div>
+    <div><span class="nl">${ICON.gota}Humedad</span><b>${c?Math.round(c.relative_humidity_2m)+'%':'–'}</b></div>`;
   const t=d.tiempo||[];
   document.getElementById('days').innerHTML=t.map(x=>{const f=new Date(x.fecha+'T12:00');return `<div class="day" title="${esc(x.fecha)} · peligro ${x.peligro} · hum. mín ${x.hum_min}% · viento máx ${x.viento_max} km/h · lluvia ${x.lluvia} mm"><b>${f.toLocaleDateString('es-PE',{weekday:'short'}).slice(0,2)}</b>${Math.round(x.tmax)}°<i style="background:var(${PEL_COL[x.peligro]})"></i></div>`}).join('');
   document.getElementById('now').classList.toggle('cargando',!c&&cargandoVivo);
@@ -745,7 +992,7 @@ document.querySelectorAll('#af button').forEach(b=>b.onclick=()=>{filtroA=b.data
 function vistaReportes(){
   const ds=distZona(), c={}; ds.forEach(d=>c[d.nivel_final]=(c[d.nivel_final]||0)+1);
   document.getElementById('kpis').innerHTML=N.slice().reverse().map(n=>`<div class="card kpi" style="--c:${col(n)}"><b>${c[n]||0}</b><span>distritos · ${n}</span></div>`).join('');
-  document.getElementById('rows').innerHTML=ds.length?ds.map(d=>`<tr class="clk" tabindex="0" data-u="${d.ubigeo}" aria-label="Abrir ficha de ${esc(d.distrito)}"><td>${esc(d.distrito)}</td><td>${esc(d.provincia)}</td><td class="num">${pct(d.probabilidad)}</td><td>${d.nivel}</td><td><span class="chip ${dk(d.nivel_final)}" style="background:${col(d.nivel_final)}">${d.nivel_final}</span></td><td class="num">${d.focos_48h||''}</td></tr>`).join(''):'<tr><td colspan="6" class="muted">No hay distritos en esta zona.</td></tr>';
+  document.getElementById('rows').innerHTML=ds.length?ds.map(d=>`<tr class="clk" tabindex="0" data-u="${d.ubigeo}" aria-label="Abrir ficha de ${esc(d.distrito)}"><td>${esc(d.distrito)}</td><td class="c-sec">${esc(d.provincia)}</td><td class="num">${pct(d.probabilidad)}</td><td class="c-sec nw">${d.nivel}</td><td><span class="chip ${dk(d.nivel_final)}" style="background:${col(d.nivel_final)}">${d.nivel_final}</span></td><td class="num">${d.focos_48h||''}</td></tr>`).join(''):'<tr><td colspan="6" class="muted">No hay distritos en esta zona.</td></tr>';
   document.querySelectorAll('#rows tr[data-u]').forEach(t=>{t.onclick=()=>ficha(t.dataset.u);t.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();ficha(t.dataset.u)}}});
   requestAnimationFrame(dibujarGraficos);
 }
@@ -889,7 +1136,7 @@ function hojaImpresion(){
   const colorN=n=>(D.colores&&D.colores[n])||hex(n);
   const motivo=d=>(d.motivos_alerta&&d.motivos_alerta[0])||(d.factores&&d.factores[0])||'–';
   const rec=d=>((D.recomendaciones[d.nivel_final]||{})[lang]||[])[0]||'–';
-  const lugar=zona?`Provincia ${zona}`:'Región Puno (108 distritos)';
+  const lugar=zona?`Provincia ${zona}`:'Región Puno';
   document.getElementById('hoja').innerHTML=`
     <header class="h-cab">
       <div class="marca">ÑAWPAQ PACHA · Hoja de alertas de incendios de vegetación</div>
@@ -927,12 +1174,19 @@ function ir(v){vista=v;
   render();
 }
 document.querySelectorAll('.nav button').forEach(b=>b.onclick=()=>ir(b.dataset.v));
+document.getElementById('volver').onclick=()=>{sel=null;encuadrar();render()};
 
+let etiquetaSel=null;
 function render(){
   capaDist.setStyle(estilo);
   if(sel&&capaPorU[sel]) capaPorU[sel].bringToFront();
   const n=D.distritos.filter(conAlerta).length, cnt=document.getElementById('nav-cnt');
   cnt.hidden=!n; cnt.textContent=n;
+  if(vista==='inicio'||vista==='mapa') kpis();
+  if(etiquetaSel){map.removeLayer(etiquetaSel);etiquetaSel=null}
+  if(sel&&byU[sel]&&Array.isArray(byU[sel].centro)&&(vista==='inicio'||vista==='mapa')){const d=byU[sel];
+    etiquetaSel=L.tooltip({permanent:true,direction:'top',className:'dist sel',offset:[0,-6]}).setLatLng(d.centro)
+      .setContent(`<b>${esc(d.distrito)}</b><br>Riesgo: ${esc(d.nivel_final)} (${pct(d.probabilidad)})`).addTo(map)}
   if(vista==='inicio'){alertaCard();zonas();condiciones()}
   if(vista==='alertas')vistaAlertas();
   if(vista==='reportes')vistaReportes();

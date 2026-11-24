@@ -7,6 +7,8 @@ Si cambias de zona piloto o agregas variables, este es el primer archivo que se 
 import os
 from pathlib import Path
 
+VERSION = "0.3.1"
+
 # --- Rutas -------------------------------------------------------------------
 RAIZ = Path(__file__).resolve().parent.parent
 DATA_RAW = RAIZ / "data" / "raw"
