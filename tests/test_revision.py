@@ -32,3 +32,12 @@ def test_regla_48h_usa_solo_dias_previos_al_mes():
     assert r["distrito_meses_con_focos_48h"] == 1
     assert r["solo_modelo"]["deteccion_pct"] == 0 and r["modelo_mas_regla_48h"]["deteccion_pct"] == 50
     assert AR.focos_modis_alta(focos).focos_modis_alta.sum() == 1
+
+
+def test_textos_alerta_en_tres_idiomas():
+    import alertas as A
+    for nivel, textos in A.RECOMENDACIONES.items():
+        assert set(textos) == {"es", "qu", "en"}, nivel
+        assert len(textos["es"]) == len(textos["qu"]) == len(textos["en"]), nivel
+    assert set(A.TITULO) == set(A.AVISO) == {"es", "qu", "en"}
+    assert set(A.NIVEL_EN) == set(A.NIVEL_QU)

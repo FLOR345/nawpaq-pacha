@@ -6,7 +6,7 @@
 [![Tests](https://github.com/FLOR345/nawpaq-pacha/actions/workflows/tests.yml/badge.svg)](https://github.com/FLOR345/nawpaq-pacha/actions/workflows/tests.yml)
 
 
-**One-month-ahead vegetation fire risk forecasting and bilingual (Spanish/Quechua) alerts for the Peruvian Andes.**
+**One-month-ahead vegetation fire risk forecasting and trilingual (Spanish, Quechua and English) alerts for the Peruvian Andes.**
 Pilot area: the **108 districts of the Puno region, Peru**.
 
 *Leer en español: [README.es.md](README.es.md)*
@@ -17,7 +17,7 @@ Pilot area: the **108 districts of the Puno region, Peru**.
 
 1. downloads public satellite and climate data (NASA FIRMS, NASA POWER, MODIS, Copernicus DEM, OpenStreetMap);
 2. estimates, for every district, the probability of at least one active-fire detection in the **next month**;
-3. turns each probability into a risk level, up to three plain-language reasons and recommended actions in **Spanish and Quechua**;
+3. turns each probability into a risk level, up to three plain-language reasons and recommended actions in **Spanish, Quechua (Collao variety, validated with local speakers) and English**;
 4. publishes everything in a **static web dashboard** that opens from the file system, with no server.
 
 ```
