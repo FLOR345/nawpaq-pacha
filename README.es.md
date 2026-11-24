@@ -2,6 +2,7 @@
 
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.23355818.svg)](https://doi.org/10.5281/zenodo.23355818)
 [![Pronóstico mensual](https://github.com/FLOR345/nawpaq-pacha/actions/workflows/pronostico.yml/badge.svg)](https://github.com/FLOR345/nawpaq-pacha/actions/workflows/pronostico.yml)
+[![Tests](https://github.com/FLOR345/nawpaq-pacha/actions/workflows/tests.yml/badge.svg)](https://github.com/FLOR345/nawpaq-pacha/actions/workflows/tests.yml)
 
 
 **Pronóstico a un mes del riesgo de incendios de vegetación y alertas en español y quechua para los Andes peruanos.**

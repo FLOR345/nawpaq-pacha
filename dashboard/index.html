@@ -11,11 +11,14 @@
 /* Layout: barra lateral verde → encabezado (título, zona, fecha) → vistas:
    Inicio (mapa + alerta + zonas + condiciones) · Mapa · Alertas · Reportes · Configuración */
 :root{
-  --bg:#eef1ee; --panel:#ffffff; --ink:#17231d; --muted:#5d6b63; --line:#dbe2dc;
+  --bg:#f6f0e6; --panel:#fffdf9; --ink:#17231d; --muted:#5a645c; --line:#e6dccb;
   --side:#123d2c; --side-2:#0c2c20; --side-ink:#e3efe7; --side-muted:#9fbcab; --side-active:#2c6b4c;
   --accent:#1f6b47; --accent-soft:#e3f0e8;
   --bajo:#3aa655; --medio:#e8c62e; --alto:#ee7d1f; --muyalto:#d42b2b;
-  --alert:#c62828; --alert-soft:#fdecec;
+  --alert:#c62828; --alert-soft:#fdecec; --on-alert:#ffffff; --on-accent:#ffffff; --draft:#8a4b00;
+  --cielo1:#f3c7aa; --cielo2:#f8e6d4; --mt-lejos:#b3a7c8; --mt-medio:#d3b58e; --mt-cerca:#e6d3b7; --nieve:#ffffff;
+  --alert-bg2:#fde0d2; --sil1:#ddd2ee; --sil2:#8f6fc4; --zi-v:#e4f2df; --zi-r:#fde3da; --ink-2:#3a463f;
+  --sombra:0 1px 2px rgba(70,50,20,.06),0 8px 22px rgba(70,50,20,.07);
   --font-display:"Bricolage Grotesque","Segoe UI",system-ui,sans-serif;
   --font-body:"IBM Plex Sans","Segoe UI",system-ui,sans-serif;
   --font-data:"IBM Plex Mono",ui-monospace,Consolas,monospace;
@@ -24,16 +27,24 @@
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
   --bg:#0f1512; --panel:#18211c; --ink:#e6eee8; --muted:#9db0a5; --line:#2a3830;
   --side:#0b2419; --side-2:#071a12; --accent:#5fc28f; --accent-soft:#1c3328;
-  --alert:#ef5350; --alert-soft:#3a1d1d; color-scheme:dark}}
+  --alert:#ef5350; --alert-soft:#3a1d1d; --on-alert:#1b1b1b; --on-accent:#0f1512; --draft:#f5b25c;
+  --cielo1:#22324a; --cielo2:#141d18; --mt-lejos:#40506c; --mt-medio:#2b3a31; --mt-cerca:#1a241e; --nieve:#d7e0ea;
+  --alert-bg2:#3a1d1d; --sil1:#2f3a44; --sil2:#a88ad8; --zi-v:#1f3326; --zi-r:#3a2420; --ink-2:#c5d2ca; --sombra:0 1px 2px rgba(0,0,0,.4);
+  color-scheme:dark}}
 :root[data-theme="dark"]{
   --bg:#0f1512; --panel:#18211c; --ink:#e6eee8; --muted:#9db0a5; --line:#2a3830;
   --side:#0b2419; --side-2:#071a12; --accent:#5fc28f; --accent-soft:#1c3328;
-  --alert:#ef5350; --alert-soft:#3a1d1d; color-scheme:dark}
+  --alert:#ef5350; --alert-soft:#3a1d1d; --on-alert:#1b1b1b; --on-accent:#0f1512; --draft:#f5b25c;
+  --cielo1:#22324a; --cielo2:#141d18; --mt-lejos:#40506c; --mt-medio:#2b3a31; --mt-cerca:#1a241e; --nieve:#d7e0ea;
+  --alert-bg2:#3a1d1d; --sil1:#2f3a44; --sil2:#a88ad8; --zi-v:#1f3326; --zi-r:#3a2420; --ink-2:#c5d2ca; --sombra:0 1px 2px rgba(0,0,0,.4);
+  color-scheme:dark}
 *{box-sizing:border-box}
 html,body{height:100%}
 body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.5 var(--font-body)}
 button,select{font:inherit;color:inherit}
-button:focus-visible,select:focus-visible,a:focus-visible,[tabindex]:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+button:focus-visible,select:focus-visible,a:focus-visible,input:focus-visible,[tabindex]:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+tr[tabindex]:focus-visible{outline-offset:-2px;background:var(--accent-soft)}
+.sw:focus-visible{outline-offset:3px}
 .app{display:grid;grid-template-columns:220px minmax(0,1fr);min-height:100vh}
 
 /* --- Barra lateral --- */
@@ -45,7 +56,7 @@ button:focus-visible,select:focus-visible,a:focus-visible,[tabindex]:focus-visib
 .nav button:hover{background:rgba(255,255,255,.07)}
 .nav button[aria-current="page"]{background:var(--side-active);box-shadow:inset 3px 0 0 #8fe0b3}
 .nav svg{flex:none;width:18px;height:18px}
-.nav .cnt{margin-left:auto;background:var(--alert);color:#fff;font:600 11px var(--font-data);padding:1px 7px;border-radius:999px}
+.nav .cnt{margin-left:auto;background:#c62828;color:#fff;font:600 11px var(--font-data);padding:1px 7px;border-radius:999px}
 .side-foot{margin-top:auto;font-size:12px;color:var(--side-muted);display:grid;gap:6px;padding:0 6px}
 .side-foot .st{display:flex;align-items:center;gap:6px;color:var(--side-ink)}
 .side-foot .st i{width:8px;height:8px;border-radius:50%;background:#59d18c;display:inline-block}
@@ -72,6 +83,10 @@ button:focus-visible,select:focus-visible,a:focus-visible,[tabindex]:focus-visib
 .legend h3{font:600 14px var(--font-body);margin:0 0 8px}
 .legend .lv{display:flex;align-items:center;gap:8px;margin:5px 0}
 .legend .lv i{width:12px;height:12px;border-radius:50%;flex:none}
+.ayuda{margin:2px 0 4px 24px;font-size:11.5px;line-height:1.35;color:var(--muted);max-width:180px}
+.wv{display:grid;gap:6px;justify-items:start}
+.wv a{display:inline-flex;text-decoration:none;color:var(--ink);gap:8px}
+.wv p{margin:0}
 .legend hr{border:0;border-top:1px solid var(--line);margin:10px 0}
 .tg{display:flex;align-items:center;gap:8px;margin:7px 0;cursor:pointer;user-select:none}
 .tg .ic{width:16px;text-align:center;flex:none}
@@ -89,8 +104,8 @@ button:focus-visible,select:focus-visible,a:focus-visible,[tabindex]:focus-visib
 
 .right{display:grid;gap:14px}
 .alert{border:0;overflow:hidden}
-.alert .hd{background:var(--alert);color:#fff;padding:11px 14px;display:flex;align-items:center;gap:10px;font:700 15px var(--font-body)}
-.alert.ok .hd{background:var(--accent)}
+.alert .hd{background:var(--alert);color:var(--on-alert);padding:11px 14px;display:flex;align-items:center;gap:10px;font:700 15px var(--font-body)}
+.alert.ok .hd{background:var(--accent);color:var(--on-accent)}
 .alert .bd{padding:12px 14px;display:grid;gap:10px;border:1px solid var(--line);border-top:0;border-radius:0 0 12px 12px}
 .alert .bd p{margin:0}
 .btn{display:flex;align-items:center;justify-content:space-between;gap:8px;border:0;border-radius:8px;background:var(--side);color:#fff;font-weight:600;padding:10px 14px;cursor:pointer;width:100%}
@@ -117,7 +132,7 @@ h2{font:700 16px/1.25 var(--font-display);margin:0 0 10px}
 
 /* --- Alertas / Reportes / Configuración --- */
 .view[hidden]{display:none!important}
-.alist{display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:12px}
+.alist{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(290px,100%),1fr));gap:12px}
 .acard{border-left:5px solid var(--c);padding:12px 14px;cursor:pointer}
 .acard:hover{box-shadow:0 3px 12px rgba(0,0,0,.08)}
 .acard h3{margin:0;font:700 15px var(--font-body)}
@@ -135,12 +150,19 @@ td{padding:7px 8px;border-bottom:1px solid var(--line)}
 td.num,th.num{text-align:right;font-family:var(--font-data);font-variant-numeric:tabular-nums}
 tbody tr.clk{cursor:pointer}
 tbody tr.clk:hover{background:var(--accent-soft)}
+.kpi-auc{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 12px;background:var(--accent-soft);border-radius:10px;padding:10px 14px;margin-bottom:12px}
+.kpi-auc b{font:800 28px/1.1 var(--font-display);font-variant-numeric:tabular-nums}
+.kpi-auc span{font-size:13px;color:var(--ink)}
+.charts{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(440px,100%),1fr));gap:16px;margin-top:16px}
+.gcard h2{margin-bottom:4px}
+.gcard p{margin:0 0 6px}
+.chart{height:300px;width:100%}
 .imp{display:grid;grid-template-columns:minmax(0,1fr) 110px;gap:6px 10px;align-items:center;font-size:13px}
 .bar{height:8px;background:var(--accent);border-radius:4px}
-.cfg{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:16px}
+.cfg{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(300px,100%),1fr));gap:16px}
 .seg{display:inline-flex;border:1px solid var(--line);border-radius:8px;overflow:hidden}
 .seg button{border:0;background:var(--panel);padding:6px 12px;cursor:pointer;font-weight:600;color:var(--muted)}
-.seg button[aria-pressed="true"]{background:var(--accent);color:#fff}
+.seg button[aria-pressed="true"]{background:var(--accent);color:var(--on-accent)}
 .row{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:8px 0;border-bottom:1px solid var(--line)}
 .row:last-child{border-bottom:0}
 code{font-family:var(--font-data);background:var(--bg);padding:1px 5px;border-radius:4px;font-size:12px}
@@ -156,82 +178,328 @@ dialog::backdrop{background:rgba(5,20,12,.55)}
 .dlg-b ul{margin:0;padding-left:18px;display:grid;gap:4px}
 .x{border:0;background:var(--bg);border-radius:8px;width:32px;height:32px;cursor:pointer;font-size:18px;flex:none}
 .prob{font:800 34px/1 var(--font-display);font-variant-numeric:tabular-nums}
-.draft{font:500 11px var(--font-data);color:var(--alto)}
+.draft{font:600 12px var(--font-data);color:var(--draft)}
+.hero{border-left:6px solid var(--c);background:var(--bg);border-radius:10px;padding:12px 14px;display:grid;gap:6px}
+.hero-n{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.hero .prob{font-size:52px;letter-spacing:-.02em}
+.hero p{margin:0}
+.hero-i{font-size:13px;color:var(--muted)}
+.ajuste{border:1px solid var(--alert);background:var(--alert-soft);border-radius:10px;padding:10px 12px;font-size:14px}
+.ajuste b .chip{vertical-align:1px;margin:0 2px}
+.ajuste ul{margin-top:6px}
+.why li{margin:2px 0}
+.todo ul{font-size:15px}
+.dlg-b h3.sep{border-top:1px solid var(--line);padding-top:12px;margin:2px 0 -6px;color:var(--ink)}
+.dlg-b>*{min-width:0}
+.dlg-f{border-top:1px solid var(--line);padding-top:10px}
+.dlg-f p{margin:0 0 4px}
+.lnk{border:0;background:none;padding:0;color:var(--accent);text-decoration:underline;cursor:pointer;font:inherit}
+@media (max-width:760px){.lnk{min-height:44px}.hero .prob{font-size:48px}}
 .cond{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:6px}
 .cond div{background:var(--bg);border-radius:6px;padding:6px;text-align:center}
 .cond b{display:block;font:500 14px var(--font-data)}
 .cond span{font-size:11px;color:var(--muted)}
 
 @media (max-width:1100px){.home{grid-template-columns:1fr}.right{grid-template-columns:repeat(auto-fit,minmax(260px,1fr))}}
-@media (max-width:820px){
+/* --- Ajustes generales que evitan desbordes en pantallas angostas --- */
+.l-short,.mlogo{display:none}
+.tblx{overflow-x:auto;-webkit-overflow-scrolling:touch;max-width:100%}
+.tblx table{min-width:100%}
+footer p{margin:0 0 4px}
+.app{min-height:100dvh}
+.side{height:100dvh}
+
+/* --- Celular y tableta angosta (≤ 760 px): móvil primero --- */
+@media (max-width:760px){
   .app{grid-template-columns:1fr}
-  .side{position:sticky;top:0;z-index:1000;height:auto;flex-direction:row;align-items:center;padding:8px 10px;gap:8px;overflow-x:auto}
-  .logo{border:0;padding:0 4px}.logo b{display:none}
-  .nav{display:flex}.nav button{padding:8px 10px;white-space:nowrap}
-  .side-foot{display:none}
-  .main{padding:14px 16px 24px}
-  .two,.kpis{grid-template-columns:1fr 1fr}.two{grid-template-columns:1fr}
-  #map{height:62vh;min-height:360px}
-  .legend{width:auto;max-width:190px;padding:10px 12px}
-  .legend .min{display:block}
+  /* Barra de navegación inferior fija */
+  .side{position:fixed;left:0;right:0;bottom:0;top:auto;z-index:1100;height:auto;flex-direction:row;padding:0 0 env(safe-area-inset-bottom);gap:0;
+        background:var(--side);box-shadow:0 -2px 12px rgba(0,0,0,.25)}
+  .logo,.side-foot{display:none}
+  .nav{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:0;width:100%}
+  .nav button{position:relative;flex-direction:column;justify-content:center;gap:3px;min-height:58px;padding:6px 2px;border-radius:0;
+              text-align:center;font-size:11.5px;font-weight:600;line-height:1.1}
+  .nav button[aria-current="page"]{box-shadow:inset 0 3px 0 #8fe0b3}
+  .nav svg{width:22px;height:22px}
+  .nav .l-long{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+  .nav .l-short{display:block}
+  .nav .cnt{position:absolute;top:5px;left:calc(50% + 6px);margin:0;padding:0 6px;font-size:10.5px}
+  /* Contenido: deja espacio para la barra inferior */
+  .main{padding:12px 16px calc(78px + env(safe-area-inset-bottom));gap:12px}
+  .top{gap:8px}
+  .mlogo{display:block;color:var(--ink);flex:none}
+  .top h1{flex:1 1 calc(100% - 44px);margin:0;font-size:19px}
+  .top .ctl{flex:1 1 0;min-width:0;min-height:44px;padding:4px 10px}
+  .top label.ctl{flex-grow:1.4}
+  .top span.ctl>span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:14px}
+  .ctl select{font-size:16px;min-height:40px;flex:1;min-width:0;text-overflow:ellipsis}
+  .leaflet-control-attribution{font-size:10px;max-width:calc(100% - 120px);line-height:1.3}
+  /* Inicio: columna derecha debajo del mapa */
+  .home{grid-template-columns:1fr!important}
+  .right{grid-template-columns:1fr}
+  #map{height:55vh;height:55dvh;min-height:320px}
+  #map.big{height:calc(100dvh - 210px);min-height:360px}
+  /* Leyenda plegable */
+  .legend{top:10px;left:10px;width:auto;max-width:min(230px,calc(100% - 80px));padding:4px 4px 8px 12px}
+  .legend h3{display:inline-block;margin:0;line-height:44px}
+  .legend .min{display:block;width:44px;height:44px;font-size:18px;margin:0}
+  .legend.closed{padding-bottom:4px}
+  .legend.closed .min{transform:rotate(-90deg)}
   .legend.closed .body{display:none}
+  .legend .body{padding-right:8px;max-height:max(180px,calc(55dvh - 90px));overflow-y:auto;overscroll-behavior:contain}
+  .tg{min-height:44px;margin:0}
+  .ayuda{max-width:none;margin-top:-4px}
+  .wv a{min-height:44px}
+  .leaflet-touch .leaflet-bar a{width:44px;height:44px;line-height:44px;font-size:22px}
+  /* Controles táctiles de 44 px */
+  .btn{min-height:44px}
+  .seg button{min-height:44px;padding:6px 14px}
+  .row{flex-wrap:wrap}
+  #imprimir-hoja{margin-left:0!important;width:100%;justify-content:center}
+  .acard{padding:14px}
+  .two,.kpis{grid-template-columns:1fr 1fr}.two{grid-template-columns:1fr}
+  .kpi b{font-size:24px}
+  .chart{height:270px}
+  .tbl{max-height:60vh}
+  tbody tr.clk td{padding-top:13px;padding-bottom:13px}
   .cond{grid-template-columns:repeat(3,minmax(0,1fr))}
+  /* Ficha del distrito a pantalla completa */
+  dialog{width:100%;max-width:none;height:100dvh;max-height:none;margin:0;inset:0;border-radius:0;overflow-y:auto;overscroll-behavior:contain}
+  .dlg-h{position:sticky;top:0;z-index:2;background:var(--panel);padding:calc(10px + env(safe-area-inset-top)) 16px 10px}
+  .dlg-h h2{font-size:19px}
+  .dlg-b{max-height:none;overflow:visible;padding:14px 16px calc(24px + env(safe-area-inset-bottom))}
+  .x{width:44px;height:44px;font-size:22px}
 }
-@media (prefers-reduced-motion:reduce){*{transition:none!important}}
-@media print{.side,.top .ctl,.toolbar button{display:none}.app{display:block}}
+@keyframes aparecer{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+@keyframes fundido{from{opacity:0}to{opacity:1}}
+@keyframes latido{50%{opacity:.45}}
+.view:not([hidden]){animation:aparecer .22s cubic-bezier(.2,.7,.2,1)}
+dialog[open]{animation:aparecer .2s cubic-bezier(.2,.7,.2,1)}
+dialog[open]::backdrop{animation:fundido .2s ease-out}
+.btn,.nav button,.seg button,.acard,tbody tr.clk,.x{transition:background-color .15s,box-shadow .15s,color .15s}
+.legend .min{transition:transform .15s}
+.now.cargando b{animation:latido 1.2s ease-in-out infinite}
+.vacio b{font-size:15px}.vacio p{margin:4px 0 0}
+@media (prefers-reduced-motion:reduce){*,*::before,*::after,::backdrop{transition:none!important;animation:none!important}}
+/* ===== Rediseño visual (paisaje andino, tarjetas cálidas) ===== */
+.card{box-shadow:var(--sombra);border-color:var(--line)}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+/* Barra lateral */
+.side{overflow:hidden}
+.logo{border-bottom:0;padding:2px 6px 10px}
+.logo b{font:800 19px/1.02 var(--font-display);letter-spacing:.03em}
+.tejido{height:14px;margin:-6px -12px 4px;flex:none;opacity:.95;
+  background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='28' height='14'%3E%3Cpath d='M0 7L7 0l7 7-7 7z' fill='%23e8a33d'/%3E%3Cpath d='M4 7l3-3 3 3-3 3z' fill='%230c2c20'/%3E%3Cpath d='M14 7l7-7 7 7-7 7z' fill='none' stroke='%23f2c14e' stroke-width='1.6'/%3E%3Ccircle cx='21' cy='7' r='1.6' fill='%23d9532b'/%3E%3C/svg%3E") repeat-x center/28px 14px}
+.side-ilus{display:block;flex:none;width:calc(100% + 24px);height:150px;margin:0 -12px -18px}
+.side-foot{position:relative;z-index:1}
+/* Encabezado con paisaje */
+.top.cabecera{position:relative;isolation:isolate;overflow:hidden;margin:-18px -22px 0;padding:20px 22px 30px;
+  background:linear-gradient(180deg,var(--cielo1),var(--cielo2) 72%,var(--bg))}
+.cabecera .paisaje{position:absolute;right:0;bottom:0;width:min(78%,1100px);height:100%;z-index:-1;pointer-events:none}
+.tit{display:flex;align-items:center;gap:12px;margin-right:auto;min-width:0}
+.tit-ic{width:42px;height:46px;flex:none;filter:drop-shadow(0 2px 4px rgba(200,60,20,.25))}
+.tit h1{margin:0;font-size:clamp(20px,2.4vw,28px)}
+.sub{margin:2px 0 0;color:var(--ink-2);font-size:14.5px}
+.cabecera .ctl{background:var(--panel);box-shadow:var(--sombra);border-color:var(--line);border-radius:10px}
+/* Leyenda */
+.legend{width:220px;border-radius:12px}
+.legend h3.cap{margin:2px 0 6px}
+.tg .ic{width:20px;height:20px;display:grid;place-items:center}
+.tg .ic svg{width:18px;height:18px}
+.ic-gente{color:#2f6fb5}
+.lago{color:#cfe9ff}
+.leaflet-tooltip.dist.sel{font-size:13px;padding:6px 10px;border-radius:8px;box-shadow:0 4px 14px rgba(0,0,0,.3)}
+/* Botón pantalla completa */
+.pant{width:34px;height:34px;display:grid;place-items:center;background:#fff;color:#333;cursor:pointer;padding:0;border:2px solid rgba(0,0,0,.2)!important;border-radius:4px}
+.pant svg{width:18px;height:18px}
+.pant:hover{background:#f4f4f4}
+.mapcard.max{position:fixed;inset:0;z-index:1300;border-radius:0;border:0}
+.mapcard.max #map{height:100vh;height:100dvh;min-height:0}
+body.sin-scroll{overflow:hidden}
+/* Columna izquierda y tarjetas bajo el mapa */
+.izq{display:grid;gap:16px;min-width:0}
+.kpirow{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
+.kcard{position:relative;overflow:hidden;padding:14px 16px 12px;display:grid;grid-template-columns:auto 1fr;align-content:start;gap:0 10px;min-height:124px}
+.kcard .ki{grid-row:1/3;width:34px;height:34px;display:grid;place-items:center}
+.kcard .ki svg{width:30px;height:30px}
+.kcard h3{margin:0;font:700 15px/1.25 var(--font-body)}
+.kcard .ks{font-size:12.5px;color:var(--muted);line-height:1.3}
+.kcard .kn{grid-column:1/-1;font:800 38px/1 var(--font-display);margin-top:10px;font-variant-numeric:tabular-nums;position:relative;z-index:1}
+.kcard .kart{position:absolute;right:10px;bottom:8px;width:48%;height:58%;pointer-events:none}
+.kcard .kart.sil{width:34%;height:66%;bottom:6px}
+/* Tarjeta de alerta */
+.alert{box-shadow:var(--sombra)}
+.alert .hd{font-size:16px}
+.alert .hd svg{width:22px;height:22px;flex:none}
+.alert .bd{position:relative;overflow:hidden;background:linear-gradient(140deg,var(--panel) 45%,var(--alert-bg2));border-color:var(--line)}
+.alert .bd>*{position:relative;z-index:1}
+.alert .bd>.llamas{position:absolute;right:-4px;bottom:-6px;width:118px;z-index:0}
+.alert .btn.rec{background:#8e1b1b;color:#fff;width:auto;justify-self:start;gap:16px;border-radius:10px}
+.alert .btn.rec:hover{background:#6f1414}
+.alert.ok .btn.rec{background:var(--side)}
+.volver{width:100%;justify-content:flex-start;gap:10px;border-radius:10px;box-shadow:var(--sombra)}
+.volver[hidden]{display:none}
+/* Zonas y condiciones */
+.zones{gap:0}
+.zone{padding:9px 0;border-bottom:1px solid var(--line)}
+.zone:last-child{border-bottom:0}
+.zone .zi{width:36px;height:36px;border-radius:10px;background:var(--zi-v)}
+.zone .zi.zr{background:var(--zi-r);color:#d4553a}
+.zone .zi svg{width:22px;height:22px}
+.now div{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:8px 6px}
+.now .nl{display:flex;align-items:center;justify-content:center;gap:4px;font-size:11.5px;color:var(--ink-2)}
+.now .nl svg{width:18px;height:18px;flex:none}
+.day{background:var(--panel);border:1px solid var(--line)}
+@media (max-width:1100px){.kpirow{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media (max-width:760px){
+  .tejido,.side-ilus{display:none}
+  .top.cabecera{margin:-12px -16px 0;padding:12px 16px 16px}
+  .cabecera .paisaje{width:100%;opacity:.55}
+  .tit{flex:1 1 100%;gap:10px}
+  .tit-ic{width:34px;height:38px}
+  .tit h1{font-size:19px}
+  .sub{font-size:12.5px}
+  .mlogo{display:none!important}
+  .kpirow{grid-template-columns:1fr;gap:10px}
+  .izq{display:contents}
+  .mapcard{order:1}.right{order:2}.kpirow{order:3}
+  .kcard{min-height:104px}
+  .kcard .kn{font-size:32px}
+  .kcard .kart{width:42%;height:62%}
+  .pant{width:44px;height:44px}
+  .legend{width:auto}
+}
+
+/* ===== Ajustes de color y legibilidad ===== */
+.card.kpi{border-top-color:var(--c)}
+.card.acard{border-left-color:var(--c)}
+.kpi,.acard{background:linear-gradient(180deg,color-mix(in srgb,var(--c) 9%,var(--panel)),var(--panel) 70%)}
+.kpi b{color:color-mix(in srgb,var(--c) 55%,var(--ink))}
+.acard{transition:box-shadow .15s,transform .15s}
+.acard:hover{transform:translateY(-1px)}
+.nw{white-space:nowrap}
+td{vertical-align:middle}
+tbody tr.clk:hover td{background:var(--accent-soft)}
+.flame{filter:drop-shadow(0 1px 2px rgba(0,0,0,.55))}
+.leaflet-container{background:#1d2a23}
+.sub{text-shadow:0 0 6px var(--cielo2),0 0 2px var(--cielo2)}
+@media (max-width:760px){
+  .c-sec{display:none}
+  .sub{display:none}
+  .top.cabecera{padding-bottom:12px}
+  .tit-ic{width:30px;height:33px}
+}
+@media (prefers-reduced-motion:reduce){.tit-ic{filter:none}}
+
+/* --- Hoja de impresión para defensa civil (A4) --- */
+.hoja{display:none}
+@media print{
+  @page{size:A4 portrait;margin:12mm 11mm 10mm}
+  html,body{background:#fff!important;color:#111!important}
+  .app,dialog,.leaflet-container{display:none!important}
+  .hoja{display:block;font:9.5pt/1.35 "IBM Plex Sans",Arial,sans-serif;color:#111}
+  .h-cab{border-bottom:2px solid #111;padding-bottom:6pt;margin-bottom:8pt}
+  .h-cab .marca{font:700 9pt Arial,sans-serif;letter-spacing:.06em;text-transform:uppercase;color:#333}
+  .h-cab h1{font:800 16pt/1.2 "Bricolage Grotesque",Arial,sans-serif;margin:3pt 0 4pt}
+  .h-cab p{margin:0 0 2pt}
+  .h-cab .draft{color:#8a4b00;font-size:8.5pt}
+  .hoja table{width:100%;border-collapse:collapse;font-size:8.8pt}
+  .hoja thead{display:table-header-group}
+  .hoja tfoot{display:table-footer-group}
+  .hoja th{position:static;text-align:left;font:700 8pt Arial,sans-serif;text-transform:uppercase;letter-spacing:.03em;color:#111;
+           border-bottom:1.5pt solid #111;padding:4pt 4pt;background:#fff}
+  .hoja td{border-bottom:.6pt solid #999;padding:4pt;vertical-align:top}
+  .hoja tbody tr{break-inside:avoid;page-break-inside:avoid}
+  .hoja td.num{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+  .h-niv{white-space:nowrap;font-weight:700}
+  .h-niv i{display:inline-block;width:8pt;height:8pt;border-radius:2pt;margin-right:4pt;vertical-align:-1pt;
+           background:var(--c);border:.5pt solid #111;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .h-esp{height:12mm;border:0!important;padding:0!important}
+  .h-pie{position:fixed;left:0;right:0;bottom:0;border-top:1pt solid #111;padding-top:3pt;font-size:8pt;color:#111;background:#fff}
+  .h-vacio{font-size:11pt;padding:16pt 0}
+}
 </style>
 </head>
 <body>
 <div class="app">
   <aside class="side">
     <div class="logo">
-      <svg width="34" height="28" viewBox="0 0 44 36" aria-hidden="true"><path d="M2 34 L15 10 L22 20 L29 6 L42 34 Z" fill="none" stroke="#e3efe7" stroke-width="2.6" stroke-linejoin="round"/><path d="M22 34c-5 0-7-4-5-8 1 2 3 2 3 0 0-3 2-5 4-6-1 3 2 4 2 7 1-1 1-2 1-3 2 2 3 4 2 6-1 3-4 4-7 4z" fill="#ff8a3d"/></svg>
-      <b>ÑAWPAQ PACHA</b>
+      <svg width="58" height="38" viewBox="0 0 64 40" aria-hidden="true"><path d="M2 37 L20 11 L28 21 L39 4 L62 37Z" fill="none" stroke="#fff" stroke-width="3" stroke-linejoin="round"/><path d="M39 4 L45.5 13.5 L42 12.5 L39 15.5 L36 12 L33.6 12.6Z" fill="#fff"/><path d="M27 37c-.4-6.6 3.4-11 10-12-1.2 5.8-4.6 10-10 12z" fill="#7cc35b"/><path d="M28.5 36.5c1.5-4.6 4.2-7.8 7.6-9.6" stroke="#2f7a2a" stroke-width="1.3" fill="none"/></svg>
+      <b>ÑAWPAQ<br>PACHA</b>
     </div>
+    <div class="tejido" aria-hidden="true"></div>
     <nav class="nav" aria-label="Secciones">
-      <button data-v="inicio" aria-current="page"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/></svg>Inicio</button>
-      <button data-v="mapa"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 21s-7-6.2-7-12a7 7 0 0 1 14 0c0 5.8-7 12-7 12z"/><circle cx="12" cy="9" r="2.5"/></svg>Mapa de riesgo</button>
-      <button data-v="alertas"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2 1 21h22L12 2zm1 15h-2v-2h2v2zm0-4h-2V9h2v4z"/></svg>Alertas<span class="cnt" id="nav-cnt" hidden></span></button>
-      <button data-v="reportes"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 3H6a1 1 0 0 0-1 1v16a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V8z"/><path d="M14 3v5h5M9 13h6M9 17h6"/></svg>Reportes</button>
-      <button data-v="config"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>Configuración</button>
+      <button data-v="inicio" aria-current="page"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/></svg><span class="l-long">Inicio</span><span class="l-short" aria-hidden="true">Inicio</span></button>
+      <button data-v="mapa"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 21s-7-6.2-7-12a7 7 0 0 1 14 0c0 5.8-7 12-7 12z"/><circle cx="12" cy="9" r="2.5"/></svg><span class="l-long">Mapa de riesgo</span><span class="l-short" aria-hidden="true">Mapa</span></button>
+      <button data-v="alertas"><svg aria-hidden="true" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2 1 21h22L12 2zm1 15h-2v-2h2v2zm0-4h-2V9h2v4z"/></svg><span class="l-long">Alertas</span><span class="l-short" aria-hidden="true">Alertas</span><span class="cnt" id="nav-cnt" hidden></span></button>
+      <button data-v="reportes"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 3H6a1 1 0 0 0-1 1v16a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V8z"/><path d="M14 3v5h5M9 13h6M9 17h6"/></svg><span class="l-long">Reportes</span><span class="l-short" aria-hidden="true">Reportes</span></button>
+      <button data-v="config"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg><span class="l-long">Configuración</span><span class="l-short" aria-hidden="true">Ajustes</span></button>
     </nav>
     <div class="side-foot">
       <div class="st" id="st-datos"><i></i><span></span></div>
       <div id="st-gen"></div>
       <div id="st-live"></div>
     </div>
+    <svg class="side-ilus" viewBox="0 0 220 170" aria-hidden="true" focusable="false" preserveAspectRatio="xMidYMax slice">
+      <path d="M0 84 L28 58 L48 70 L80 38 L112 70 L140 50 L170 66 L198 44 L220 56 V110 H0Z" fill="#3a7454"/>
+      <path d="M80 38 L92 50 L86 49 L80 53 L74 48 L68 50Z" fill="#e3efe7" opacity=".8"/>
+      <path d="M0 98 C40 72 80 82 110 92 S180 70 220 84 V170 H0Z" fill="#2c6b3f" opacity=".75"/>
+      <path d="M0 124 C50 100 110 114 150 104 S200 100 220 108 V170 H0Z" fill="#3f8a4c"/>
+      <path d="M0 148 C60 132 140 142 220 134 V170 H0Z" fill="#5aa95a"/>
+      <g transform="translate(118 74) scale(.95)"><path d="M15 9 L16 2 L18 7 L20 2 L21 9 C24 9 27 11 27 14 C27 16 25 16 23 16 L22 16 L22 34 C30 35 40 34 46 35 C50 35.5 52 38 51 42 C50.5 45 50 47 49 48 L49 68 L46 68 L45 52 L43 52 L42 68 L39 68 L39 50 C33 51 27 51 23 50 L23 68 L20 68 L19 53 L18 53 L17 68 L14 68 L14 48 C13 44 13 40 14 37 L14 18 C12 17 11 14 12 12 C12.5 10 14 9 15 9Z" fill="#e2b56b"/><circle cx="21.5" cy="12" r="1" fill="#5a3b14"/></g>
+      <g stroke="#2e6b2e" stroke-width="2" fill="none" stroke-linecap="round"><path d="M20 160l-3-14M26 160l2-16M32 160l5-12M180 158l-4-13M186 158l1-15M192 158l5-11M96 166l-3-10M102 166l2-12"/></g>
+    </svg>
   </aside>
 
   <main class="main">
-    <div class="top">
-      <h1 id="titulo">Mapa de riesgo de incendios forestales</h1>
+    <header class="top cabecera">
+      <svg class="paisaje" viewBox="0 0 1200 130" aria-hidden="true" focusable="false" preserveAspectRatio="xMaxYMax slice">
+        <path d="M560 130 L640 98 L700 108 L780 76 L840 92 L930 30 L975 55 L1010 46 L1080 84 L1140 70 L1200 86 V130Z" fill="var(--mt-lejos)"/>
+        <path d="M930 30 L975 55 L962 58 L950 52 L938 62 L924 54 L910 58 L894 55Z" fill="var(--nieve)"/>
+        <path d="M780 76 L801 83 L792 86 L782 82 L772 86 L763 83Z" fill="var(--nieve)"/>
+        <path d="M1010 46 L1031 57 L1021 59 L1011 55 L1001 59 L989 52Z" fill="var(--nieve)"/>
+        <path d="M420 130 C520 108 620 118 720 106 S900 98 1000 110 S1140 102 1200 108 V130Z" fill="var(--mt-medio)"/>
+        <path d="M0 130 V124 C260 116 520 124 760 118 S1060 114 1200 120 V130Z" fill="var(--mt-cerca)"/>
+      </svg>
+      <div class="tit">
+        <svg class="tit-ic" viewBox="0 0 24 24" aria-hidden="true"><defs><linearGradient id="gfuego" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ff7a2f"/><stop offset="1" stop-color="#d4281f"/></linearGradient></defs><path d="M12 22.5c-4.6 0-7.4-3.1-7.4-7 0-3.1 1.9-5.3 3.4-6.8.3 1.6 1.3 2.6 2.3 2.8-.6-3.6 1.3-7 4-9.1-.4 3 .8 5 2.2 6.8 1.8 2.2 2.9 4.1 2.9 6.6 0 3.8-2.8 6.7-7.4 6.7z" fill="url(#gfuego)"/><path d="M12 20.6c-2 0-3.2-1.4-3.2-3.1 0-1.6 1-2.6 1.8-3.4.2 1 .8 1.6 1.5 1.6 0-1.6.9-2.9 1.9-3.6.1 1.6 1.6 2.8 1.6 4.7 0 2.3-1.6 3.8-3.6 3.8z" fill="#ffc83d"/></svg>
+        <div><h1 id="titulo">Mapa de riesgo de incendios de vegetación</h1>
+        <p class="sub">Monitoreo, análisis y alertas tempranas en la región Puno</p></div>
+      </div>
       <label class="ctl"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 21s-7-6.2-7-12a7 7 0 0 1 14 0c0 5.8-7 12-7 12z"/></svg>
         <select id="zona" aria-label="Zona"></select></label>
       <span class="ctl"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg><span id="hoy"></span></span>
-    </div>
+    </header>
     <div class="banner" id="banner" hidden></div>
 
     <!-- INICIO / MAPA -->
     <section class="view home" id="v-inicio">
+      <div class="izq">
       <div class="card mapcard">
         <div id="map" role="application" aria-label="Mapa de riesgo de incendios por distrito"></div>
         <div class="legend" id="legend">
-          <button class="min" id="leg-min" aria-label="Mostrar u ocultar leyenda">▾</button>
+          <button class="min" id="leg-min" aria-label="Mostrar u ocultar leyenda" aria-expanded="true" aria-controls="leg-body">▾</button>
           <h3>Nivel de riesgo</h3>
-          <div class="body">
+          <div class="body" id="leg-body">
             <div id="leg-niveles"></div>
             <hr>
-            <label class="tg"><span class="ic">🔥</span><span>Focos activos (7 días)</span><input type="checkbox" class="sw" data-capa="activos" checked></label>
-            <label class="tg"><span class="ic" style="color:var(--muyalto)">●</span><span>Incendios históricos (12 m)</span><input type="checkbox" class="sw" data-capa="historicos" checked></label>
-            <label class="tg"><span class="ic">🌾</span><span>Áreas agrícolas</span><input type="checkbox" class="sw" data-capa="agricola"></label>
-            <label class="tg"><span class="ic">🌿</span><span>Pastizales</span><input type="checkbox" class="sw" data-capa="pastizal"></label>
-            <label class="tg"><span class="ic">🏠</span><span>Comunidades</span><input type="checkbox" class="sw" data-capa="lugares"></label>
-            <label class="tg"><span class="ic">🐾</span><span>Biodiversidad</span><input type="checkbox" class="sw" data-capa="protegidas" checked></label>
+            <h3 class="cap">Capas del mapa</h3>
+            <label class="tg"><span class="ic" data-ic="fuego"></span><span id="lbl-activos">Focos activos (7 días)</span><input type="checkbox" class="sw" data-capa="activos" checked></label>
+            <label class="tg"><span class="ic" data-ic="historico"></span><span>Incendios históricos (12 m)</span><input type="checkbox" class="sw" data-capa="historicos" checked></label>
+            <label class="tg"><span class="ic" data-ic="brote"></span><span>Áreas agrícolas</span><input type="checkbox" class="sw" data-capa="agricola"></label>
+            <label class="tg"><span class="ic" data-ic="pasto"></span><span>Pastizales</span><input type="checkbox" class="sw" data-capa="pastizal"></label>
+            <label class="tg"><span class="ic ic-gente" data-ic="gente"></span><span>Comunidades</span><input type="checkbox" class="sw" data-capa="lugares"></label>
+            <label class="tg"><span class="ic" data-ic="huella"></span><span>Biodiversidad</span><input type="checkbox" class="sw" data-capa="protegidas" checked></label>
+            <label class="tg"><span class="ic" data-ic="satelite"></span><span>Imagen satelital de ayer (NASA)</span><input type="checkbox" class="sw" data-capa="nasa" aria-describedby="nasa-ayuda"></label>
+            <p class="ayuda" id="nasa-ayuda" hidden></p>
           </div>
         </div>
       </div>
+      <div class="kpirow" id="kpirow"></div>
+      </div>
       <div class="right" id="right">
         <div class="card alert" id="alert-card"></div>
+        <button class="btn ghost volver" id="volver" hidden><span aria-hidden="true">→</span><span id="volver-t">Volver a toda la región</span></button>
         <div class="card pad"><h2>Zonas en riesgo</h2><div class="zones" id="zones"></div></div>
         <div class="card pad"><h2 id="now-t">Condiciones actuales</h2><div class="now" id="now"></div><div class="days" id="days"></div><div class="small muted" id="now-src" style="margin-top:8px"></div></div>
       </div>
@@ -244,6 +512,7 @@ dialog::backdrop{background:rgba(5,20,12,.55)}
           <button data-f="alerta" aria-pressed="true">Con alerta</button><button data-f="todos" aria-pressed="false">Todos</button>
         </div>
         <span class="small muted" id="a-info"></span>
+        <button class="btn ghost" id="imprimir-hoja" style="margin-left:auto">🖨 Imprimir hoja de alertas</button>
       </div>
       <div class="alist" id="alist"></div>
     </section>
@@ -255,19 +524,35 @@ dialog::backdrop{background:rgba(5,20,12,.55)}
         <div class="card pad">
           <div class="toolbar" style="justify-content:space-between">
             <h2 style="margin:0">Distritos ordenados por riesgo</h2>
-            <div style="display:flex;gap:8px"><button class="btn ghost" id="dl-csv">⬇ CSV</button><button class="btn ghost" onclick="print()">🖨 Imprimir</button></div>
+            <div style="display:flex;gap:8px"><button class="btn ghost" id="dl-csv">⬇ CSV</button><button class="btn ghost" id="imprimir-hoja-r" title="Imprime la hoja de alertas para defensa civil">🖨 Hoja de alertas</button></div>
           </div>
           <div class="tbl"><table>
-            <thead><tr><th>Distrito</th><th>Provincia</th><th class="num">Prob. mes</th><th>Modelo</th><th>Alerta final</th><th class="num">Focos 48 h</th></tr></thead>
+            <thead><tr><th>Distrito</th><th class="c-sec">Provincia</th><th class="num">Prob. mes</th><th class="c-sec">Modelo</th><th>Alerta final</th><th class="num">Focos 48 h</th></tr></thead>
             <tbody id="rows"></tbody></table></div>
         </div>
         <div class="card pad">
           <h2>¿Qué tan bien funciona el modelo?</h2>
           <p class="small muted" id="periodos" style="margin-top:0"></p>
+          <div class="kpi-auc" id="kpi-auc" hidden></div>
           <table id="metrics"></table>
-          <h2 style="margin-top:18px">Lo que más pesa en la estimación</h2>
-          <div class="imp" id="imp"></div>
+          <div id="imp-lista"><h2 style="margin-top:18px">Lo que más pesa en la estimación</h2>
+          <div class="imp" id="imp"></div></div>
         </div>
+      </div>
+      <p class="small muted" id="graf-msg" hidden></p>
+      <div class="charts" id="charts">
+        <div class="card pad gcard" id="g-auc" hidden><h2>AUC por año: sistema frente a climatología</h2>
+          <p class="small muted">Cada año se evaluó con un modelo entrenado solo con años anteriores. Más alto es mejor; 0.5 sería azar.</p>
+          <div class="chart" id="c-auc" role="img"></div></div>
+        <div class="card pad gcard" id="g-cal" hidden><h2>Calibración: ¿la probabilidad dice la verdad?</h2>
+          <p class="small muted">Si los puntos caen sobre la diagonal, una probabilidad de 20 % significa que en unos 20 de cada 100 casos hubo incendio.</p>
+          <div class="chart" id="c-cal" role="img"></div></div>
+        <div class="card pad gcard" id="g-umb" hidden><h2>Umbral de alerta: detección y falsas alarmas</h2>
+          <p class="small muted" id="g-umb-t"></p>
+          <div class="chart" id="c-umb" role="img"></div></div>
+        <div class="card pad gcard" id="g-imp" hidden><h2 id="g-imp-h">Importancia por grupos de variables</h2>
+          <p class="small muted">Cuánto baja el AUC si se desordena ese grupo de datos. Barra más larga = el modelo depende más de él.</p>
+          <div class="chart" id="c-imp" role="img"></div></div>
       </div>
     </section>
 
@@ -293,13 +578,16 @@ dialog::backdrop{background:rgba(5,20,12,.55)}
       </div>
     </section>
 
-    <footer id="footer"></footer>
+    <footer id="footer"><p id="foot-aviso"></p><p id="foot-gen"></p></footer>
   </main>
 </div>
+
+<section class="hoja" id="hoja" aria-hidden="true"></section>
 
 <dialog id="dlg" aria-labelledby="dlg-t"><div class="dlg-h"><div><div class="small muted" id="dlg-p"></div><h2 id="dlg-t"></h2></div><button class="x" aria-label="Cerrar" onclick="document.getElementById('dlg').close()">×</button></div><div class="dlg-b" id="dlg-b"></div></dialog>
 
 <script src="lib/leaflet.js"></script>
+<script src="lib/echarts.min.js"></script>
 <script src="datos_riesgo.js"></script>
 <script>
 (function(){
@@ -308,13 +596,58 @@ if(!D){document.querySelector('.main').innerHTML='<div class="card pad"><h2>Falt
 const N = D.niveles, VAR = {"Bajo":"--bajo","Medio":"--medio","Alto":"--alto","Muy alto":"--muyalto"};
 const col = n => `var(${VAR[n]})`;
 const hex = n => getComputedStyle(document.documentElement).getPropertyValue(VAR[n]).trim();
+// Texto oscuro sobre un color si da más contraste que el blanco (WCAG): los colores de nivel no cambian
+const lum=c=>{let h=String(c).trim().replace('#','');if(h.length===3)h=h.split('').map(x=>x+x).join('');
+  const v=[0,2,4].map(i=>parseInt(h.slice(i,i+2),16)/255).map(x=>x<=.03928?x/12.92:((x+.055)/1.055)**2.4);return .2126*v[0]+.7152*v[1]+.0722*v[2]};
+const oscuroSobre=varCss=>{try{const l=lum(getComputedStyle(document.documentElement).getPropertyValue(varCss));
+  return isFinite(l)&&(l+.05)/(lum('#1b1b1b')+.05)>1.05/(l+.05)}catch(e){return false}};
+const dk=n=>oscuroSobre(VAR[n])?'dk':'';
 const pct = p => Math.round(p*100)+'%';
 const esc = s => String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const fmt1 = v => v==null?'–':(Math.round(v*10)/10).toString();
 const byU = Object.fromEntries(D.distritos.map(d=>[d.ubigeo,d]));
+// ---------- Iconos e ilustraciones (SVG en línea, decorativos) ----------
+const svgI=(c,vb='0 0 24 24')=>`<svg viewBox="${vb}" aria-hidden="true" focusable="false">${c}</svg>`;
+const ICON={
+  fuego:svgI('<path d="M12 22c-4.4 0-7-3-7-6.6 0-3 1.8-5 3.2-6.4.3 1.5 1.2 2.4 2.2 2.6-.6-3.4 1.2-6.6 3.8-8.6-.4 2.8.8 4.7 2.1 6.4C17.8 11.2 19 13 19 15.4 19 19 16.4 22 12 22z" fill="#f05a24"/><path d="M12 20.4c-1.9 0-3-1.3-3-2.9 0-1.5 1-2.5 1.7-3.2.2 1 .8 1.5 1.4 1.5 0-1.5.8-2.7 1.8-3.4.1 1.5 1.5 2.6 1.5 4.4 0 2.2-1.5 3.6-3.4 3.6z" fill="#ffc83d"/>'),
+  historico:svgI('<circle cx="7" cy="9" r="3" fill="#e0362c"/><circle cx="16" cy="7" r="2.4" fill="#e0362c" opacity=".8"/><circle cx="14" cy="16" r="3.4" fill="#e0362c" opacity=".9"/><circle cx="6" cy="18" r="1.8" fill="#e0362c" opacity=".7"/>'),
+  brote:svgI('<path d="M12 21v-8" stroke="#2e8b3e" stroke-width="2" stroke-linecap="round"/><path d="M12 13c0-4.2 3-6.6 7.5-6.6 0 4.2-3 6.6-7.5 6.6z" fill="#4caf50"/><path d="M12 15.5c0-3.4-2.6-5.4-6.4-5.4 0 3.4 2.6 5.4 6.4 5.4z" fill="#7cc35b"/>'),
+  pasto:svgI('<path d="M3 21l2.6-9 1.4 9M8 21l2-12.5L12 21M12.5 21l2.3-10.5L16.5 21M17 21l3-8 1 8" stroke="#3a8f3e" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>'),
+  gente:svgI('<circle cx="8" cy="7.5" r="3.2" fill="currentColor"/><circle cx="16.8" cy="8.6" r="2.6" fill="currentColor" opacity=".85"/><path d="M2 20.5c0-3.8 2.7-6.4 6-6.4s6 2.6 6 6.4z" fill="currentColor"/><path d="M13.6 20.5c.3-3.2 1.9-5.2 3.9-5.2s4 2 4.4 5.2z" fill="currentColor" opacity=".85"/>'),
+  huella:svgI('<g fill="#2e8b57"><ellipse cx="12" cy="16" rx="4.6" ry="3.9"/><circle cx="5.8" cy="10.6" r="2.1"/><circle cx="9.5" cy="6.4" r="2.1"/><circle cx="14.5" cy="6.4" r="2.1"/><circle cx="18.2" cy="10.6" r="2.1"/></g>'),
+  satelite:svgI('<g fill="#5b6770"><path d="M10.2 7.2l6.6 6.6-3 3-6.6-6.6z"/><path d="M3 4.6L5.6 2l4 4L7 8.6zM16.4 18l2.6-2.6 4 4-2.6 2.6z"/></g><path d="M5.5 15a4.5 4.5 0 0 0 4.5 4.5" stroke="#5b6770" stroke-width="1.8" fill="none" stroke-linecap="round"/>'),
+  hoja:svgI('<path d="M20.5 3.5C9.5 3.5 4 9 4 16c0 1.8.4 3 1 4 1.2-5 5-8.8 10-10.8-4.2 3-7 6.2-8 10.8 9.6 1 13.5-6.4 13.5-16.5z" fill="#3a9a4a"/>'),
+  termometro:svgI('<path d="M10 4.2a2 2 0 0 1 4 0v9.2a4 4 0 1 1-4 0z" fill="none" stroke="#d64545" stroke-width="1.9"/><circle cx="12" cy="17" r="2.1" fill="#d64545"/><path d="M12 9v7" stroke="#d64545" stroke-width="2" stroke-linecap="round"/>'),
+  viento:svgI('<path d="M3 9h11.2a3 3 0 1 0-3-3M3 13h15a3 3 0 1 1-3 3M3 17h7.5" fill="none" stroke="#3b82c4" stroke-width="2" stroke-linecap="round"/>'),
+  gota:svgI('<path d="M12 3c3.1 4.1 6.2 7.5 6.2 11.2a6.2 6.2 0 0 1-12.4 0C5.8 10.5 8.9 7.1 12 3z" fill="#3b9be0"/><path d="M9 14.5a3 3 0 0 0 2.4 3" stroke="#fff" stroke-width="1.5" fill="none" stroke-linecap="round" opacity=".8"/>'),
+  aviso:svgI('<path d="M12 2.5 1.5 21h21z" fill="#f2a516"/><path d="M11 9h2v6h-2zM11 16.5h2v2h-2z" fill="#3a2600"/>'),
+  avisoBlanco:svgI('<path d="M12 2.5 1.5 21h21z" fill="currentColor"/><path d="M11 9h2v6h-2zM11 16.5h2v2h-2z" fill="var(--alert)"/>'),
+  expandir:svgI('<path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/>'),
+  contraer:svgI('<path d="M9 4v5H4M15 4v5h5M9 20v-5H4M15 20v-5h5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/>')
+};
+const ILUS_LLAMAS=`<svg class="llamas" viewBox="0 0 120 90" aria-hidden="true" focusable="false">
+  <path d="M70 90c-14 0-22-9-22-21 0-10 6-16 11-21 1 5 4 8 7 9-2-11 4-21 12-28-1 9 3 15 7 20 6 7 9 13 9 20 0 12-9 21-24 21z" fill="#f26b2a" opacity=".55"/>
+  <path d="M100 90c-9 0-14-6-14-13 0-6 4-10 7-13 .5 3 2.5 5 4.5 5.5-1-6 2-12 7-16-.5 5 2 9 4 12 4 4 6 8 6 12 0 7-6 12.5-14.5 12.5z" fill="#e53935" opacity=".5"/>
+  <path d="M70 90c-6 0-10-4-10-9 0-4 3-7 5-9 .3 2 1.5 3 3 3 0-4 2-7 4.5-9 .3 4 4 6.5 4 11 0 7-3 13-6.5 13z" fill="#ffb02e" opacity=".75"/>
+  <path d="M28 90l4-14 2 14M37 90l3-18 3 18M46 90l2-10 2 10M108 90l3-12 2 12" stroke="#8a5a2b" stroke-width="2" fill="none" opacity=".55"/></svg>`;
+const ILUS_PASTO=`<svg class="kart" viewBox="0 0 140 70" aria-hidden="true" focusable="false" preserveAspectRatio="xMaxYMax meet">
+  <path d="M0 70 C30 52 70 48 140 40 V70Z" fill="#7cc35b" opacity=".5"/>
+  <path d="M40 70 C70 58 100 56 140 54 V70Z" fill="#4f9d45" opacity=".75"/>
+  <g stroke="#2e7d32" stroke-width="2.2" fill="none" stroke-linecap="round"><path d="M86 66l-6-22M92 66l2-26M98 66l7-20M104 66l-2-16M112 66l8-24M118 66l-1-20M124 66l9-18M130 66l3-14"/></g></svg>`;
+
+// Rango de fechas legible: «5–12 oct.» o «28 sept. – 4 oct.»
+function rangoFechas(fs){
+  if(!fs.length) return '';
+  const s=fs.slice().sort(), a=new Date(s[0]+'T12:00'), b=new Date(s[s.length-1]+'T12:00');
+  const mes=x=>x.toLocaleDateString('es-PE',{month:'short'}).replace('.','').toLowerCase()+'.';
+  return a.getMonth()===b.getMonth()&&a.getFullYear()===b.getFullYear()?(a.getDate()===b.getDate()?`${b.getDate()} ${mes(b)}`:`${a.getDate()}–${b.getDate()} ${mes(b)}`):`${a.getDate()} ${mes(a)} – ${b.getDate()} ${mes(b)}`;
+}
+const FECHAS_FOCOS=D.capas.focos_activos.map(p=>String(p[2]).slice(0,10)).filter(f=>/^\d{4}-\d\d-\d\d$/.test(f));
+const RANGO_FOCOS=rangoFechas(FECHAS_FOCOS);
+
 const store = {get(k){try{return localStorage.getItem('nawpaq.'+k)}catch(e){return null}}, set(k,v){try{localStorage.setItem('nawpaq.'+k,v)}catch(e){}}};
 let lang = store.get('lang')||'es', zona = '', sel = null, vista = 'inicio', filtroA = 'alerta';
-let actual = {};   // condiciones actuales en vivo por ubigeo
+let actual = {}, cargandoVivo = false;   // condiciones actuales en vivo por ubigeo
 
 // ---------- Regla de alerta de corto plazo (igual que src/alertas.py) ----------
 const R = D.peligro_tiempo;
@@ -344,17 +677,38 @@ const enZona = d => !zona || d.provincia===zona;
 const distZona = () => D.distritos.filter(enZona);
 
 const hoy=new Date();
-document.getElementById('hoy').textContent='Hoy, '+hoy.toLocaleDateString('es-PE',{day:'numeric',month:'short',year:'numeric'});
+// Ayer en hora de Perú (AAAA-MM-DD): la imagen VIIRS del día suele publicarse completa al día siguiente
+const ayerISO=(()=>{const t=new Date(Date.now()-864e5);
+  try{return new Intl.DateTimeFormat('en-CA',{timeZone:'America/Lima',year:'numeric',month:'2-digit',day:'2-digit'}).format(t)}
+  catch(e){return t.toISOString().slice(0,10)}})();
+const ayerTxt=new Date(ayerISO+'T12:00').toLocaleDateString('es-PE',{day:'numeric',month:'long',year:'numeric'});
+const AYUDA_NASA='La imagen puede tener nubes; sirve para verificar humo o quemas grandes.';
+const urlWorldview=d=>{const [la,lo]=d.centro;
+  return 'https://worldview.earthdata.nasa.gov/?v='+[lo-.3,la-.3,lo+.3,la+.3].map(x=>x.toFixed(4)).join(',')+'&t='+ayerISO};
+document.getElementById('hoy').textContent=(innerWidth>760?'Hoy, ':'')+hoy.toLocaleDateString('es-PE',{day:'numeric',month:'short',year:'numeric'});
+document.getElementById('hoy').parentElement.setAttribute('aria-label','Hoy, '+hoy.toLocaleDateString('es-PE',{day:'numeric',month:'long',year:'numeric'}));
 
 // ---------- Estado de datos ----------
 document.querySelector('#st-datos span').textContent='Datos reales';
-document.getElementById('st-gen').textContent=`Modelo: pronóstico de ${D.mes_pronostico}`+(D.fuentes&&D.fuentes.ultimo_mes_datos?` · datos hasta ${D.fuentes.ultimo_mes_datos}`:'')+` · generado ${D.generado}`;
+const genTxt=`Modelo: pronóstico de ${D.mes_pronostico}`+(D.fuentes&&D.fuentes.ultimo_mes_datos?` · datos hasta ${D.fuentes.ultimo_mes_datos}`:'')+` · generado ${D.generado}`;
+document.getElementById('st-gen').textContent=genTxt;
+document.getElementById('foot-gen').textContent=genTxt+' · Fuentes de datos: ver Configuración.';
 const ban=document.getElementById('banner');
 if(D.fuentes&&D.fuentes.firms_anio_en_curso===false){ban.hidden=false;ban.innerHTML='<b>Faltan focos de calor del año en curso.</b> Agrega tu clave gratuita de NASA FIRMS en el archivo <code>.env</code> (<code>FIRMS_MAP_KEY=…</code>) y vuelve a ejecutar <code>python main.py --datos-reales</code>.';}
 
 // ---------- Mapa ----------
-const map=L.map('map',{zoomControl:false,zoomSnap:.25}).setView([-15,-70],7);
+const sinMovimiento=matchMedia('(prefers-reduced-motion: reduce)').matches;
+const map=L.map('map',{zoomControl:false,zoomSnap:.25,zoomAnimation:!sinMovimiento,fadeAnimation:!sinMovimiento,markerZoomAnimation:!sinMovimiento}).setView([-15,-70],7);
+// Pantalla completa del mapa (clase CSS: funciona también en iPhone); se sale con Esc o el mismo botón
+function pantalla(on){const mc=document.querySelector('.mapcard'),b=document.querySelector('.pant');mc.classList.toggle('max',on);document.body.classList.toggle('sin-scroll',on);
+  if(b){b.innerHTML=on?ICON.contraer:ICON.expandir;b.setAttribute('aria-label',on?'Salir de pantalla completa':'Ver el mapa a pantalla completa');b.setAttribute('aria-pressed',on)}
+  setTimeout(()=>map.invalidateSize(),60)}
+const Pant=L.Control.extend({onAdd(){const b=L.DomUtil.create('button','pant leaflet-bar');b.type='button';b.innerHTML=ICON.expandir;
+  b.setAttribute('aria-label','Ver el mapa a pantalla completa');b.setAttribute('aria-pressed','false');b.title='Pantalla completa';
+  L.DomEvent.disableClickPropagation(b);b.onclick=()=>pantalla(!document.querySelector('.mapcard').classList.contains('max'));return b}});
+new Pant({position:'bottomright'}).addTo(map);
 L.control.zoom({position:'bottomright'}).addTo(map);
+addEventListener('keydown',e=>{if(e.key==='Escape'&&document.querySelector('.mapcard.max')&&!document.getElementById('dlg').open)pantalla(false)});
 const bases={
   sat:[L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',{maxZoom:18,attribution:'Imágenes © Esri, Maxar, Earthstar Geographics'}),
        L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}',{maxZoom:18,opacity:.9})],
@@ -370,22 +724,32 @@ new Norte({position:'topright'}).addTo(map);
 L.marker([-15.75,-69.55],{interactive:false,icon:L.divIcon({className:'lago',html:'Lago Titicaca',iconSize:[110,20],iconAnchor:[55,10]})}).addTo(map);
 
 const estilo=f=>{const d=byU[f.properties.ubigeo];const vis=d&&enZona(d);
-  return {color:sel===f.properties.ubigeo?'#ffffff':'rgba(255,255,255,.75)',weight:sel===f.properties.ubigeo?3:.8,
-          fillColor:d?hex(d.nivel_final):'#888',fillOpacity:vis?.55:.12,opacity:vis?1:.35}};
+  return {color:sel===f.properties.ubigeo?'#ffffff':'rgba(255,255,255,.9)',weight:sel===f.properties.ubigeo?3:1,
+          fillColor:d?hex(d.nivel_final):'#888',fillOpacity:vis?.74:.12,opacity:vis?1:.35}};
 const capaDist=L.geoJSON(D.geojson,{style:estilo,onEachFeature:(f,l)=>{
   const d=byU[f.properties.ubigeo];
   l.bindTooltip(()=>{const x=byU[f.properties.ubigeo];return x?`<b>${esc(x.distrito)}</b><br>${x.nivel_final}${x.nivel_final!==x.nivel?` (modelo: ${x.nivel})`:''} · ${pct(x.probabilidad)}`:esc(f.properties.distrito)},{className:'dist',sticky:true});
   l.on('click',()=>{if(d)seleccionar(d.ubigeo,false)});
+  l.on('tooltipopen',()=>{if(f.properties.ubigeo===sel)l.closeTooltip()});
 }}).addTo(map);
 const capaPorU={}; capaDist.eachLayer(l=>capaPorU[l.feature.properties.ubigeo]=l);
 
 const rend=L.canvas({padding:.3});
+// VIIRS True Color de ayer. Si S-NPP no tiene imagen (404), se prueba NOAA-20 y luego NOAA-21 (mismo sensor).
+const GIBS=[['VIIRS_SNPP_CorrectedReflectance_TrueColor','VIIRS S-NPP'],['VIIRS_NOAA20_CorrectedReflectance_TrueColor','VIIRS NOAA-20'],
+            ['VIIRS_NOAA21_CorrectedReflectance_TrueColor','VIIRS NOAA-21']];
+let iGibs=0;
+const urlGibs=i=>`https://gibs.earthdata.nasa.gov/wmts/epsg3857/best/${GIBS[i][0]}/default/${ayerISO}/GoogleMapsCompatible_Level9/{z}/{y}/{x}.jpg`;
+const ayudaNasa=()=>{const ay=document.getElementById('nasa-ayuda');if(ay)ay.textContent=`Imagen ${GIBS[iGibs][1]} del ${ayerTxt}. ${AYUDA_NASA}`};
+const capaNasa=L.tileLayer(urlGibs(0),{maxNativeZoom:9,maxZoom:18,zIndex:5,attribution:'Imagery: NASA GIBS / Worldview'});
+capaNasa.on('tileerror',()=>{if(iGibs<GIBS.length-1){iGibs++;capaNasa.setUrl(urlGibs(iGibs));ayudaNasa()}});
 const capas={
+  nasa:capaNasa,
   historicos:L.layerGroup(D.capas.focos_12m.map(p=>L.circleMarker([p[0],p[1]],{renderer:rend,radius:2.5,weight:0,fillColor:'#ff3b1f',fillOpacity:.75}).bindTooltip(`Foco de calor · ${esc(p[2]).slice(0,10)}`))),
-  activos:L.layerGroup(D.capas.focos_activos.map(p=>L.marker([p[0],p[1]],{icon:L.divIcon({className:'',html:'<svg class="flame" width="22" height="26" viewBox="0 0 24 28"><path d="M12 27c-6 0-9-4.4-9-9 0-4 2.4-6.7 4.3-8.6.4 2 1.6 3.3 3 3.6C9.6 8.3 12 4 15.5 1c-.6 3.7 1 6.3 2.8 8.6C20.3 12 21 14.4 21 17.5 21 23 17.5 27 12 27z" fill="#ff5a1f" stroke="#fff" stroke-width="1.5"/><path d="M12 25c-2.6 0-4-1.9-4-4 0-2 1.3-3.4 2.3-4.3.2 1.3 1 2 1.9 2 0-2 1-3.6 2.4-4.6.1 2 2 3.5 2 6 0 3-2 4.9-4.6 4.9z" fill="#ffd23f"/></svg>',iconSize:[22,26],iconAnchor:[11,24]})})
+  activos:L.layerGroup(D.capas.focos_activos.map(p=>L.marker([p[0],p[1]],{icon:L.divIcon({className:'',html:'<svg class="flame" width="16" height="19" viewBox="0 0 24 28"><path d="M12 27c-6 0-9-4.4-9-9 0-4 2.4-6.7 4.3-8.6.4 2 1.6 3.3 3 3.6C9.6 8.3 12 4 15.5 1c-.6 3.7 1 6.3 2.8 8.6C20.3 12 21 14.4 21 17.5 21 23 17.5 27 12 27z" fill="#ff5a1f" stroke="#fff" stroke-width="1.5"/><path d="M12 25c-2.6 0-4-1.9-4-4 0-2 1.3-3.4 2.3-4.3.2 1.3 1 2 1.9 2 0-2 1-3.6 2.4-4.6.1 2 2 3.5 2 6 0 3-2 4.9-4.6 4.9z" fill="#ffd23f"/></svg>',iconSize:[16,19],iconAnchor:[8,18]})})
       .bindPopup(`<b>Foco activo</b><br>${esc(p[2])} ${String(p[3]).padStart(4,'0').replace(/(\d\d)(\d\d)/,'$1:$2')} UTC<br>Sensor: ${esc(p[4])}<br>Distrito: ${esc(byU[p[5]]?.distrito||'')}`))),
   lugares:L.layerGroup(D.capas.lugares.map(p=>L.circleMarker([p[0],p[1]],{renderer:rend,radius:p[3]==='village'?3:5,color:'#fff',weight:1,fillColor:'#2f80ed',fillOpacity:.9}).bindTooltip(`${esc(p[2])} (${p[3]==='village'?'centro poblado':p[3]==='town'?'ciudad':'capital'})`))),
-  protegidas:L.layerGroup(D.capas.protegidas.map(a=>L.polyline(a.lineas.map(r=>r.map(([x,y])=>[y,x])),{color:'#7CFC9A',weight:2,dashArray:'5 4'}).bindTooltip(esc(a.nombre),{sticky:true}))),
+  protegidas:L.layerGroup(D.capas.protegidas.map(a=>L.polyline(a.lineas.map(r=>r.map(([x,y])=>[y,x])),{color:'#c9f7d6',weight:1.5,opacity:.9,dashArray:'4 4'}).bindTooltip(esc(a.nombre),{sticky:true}))),
   agricola:L.geoJSON(D.geojson,{filter:f=>(byU[f.properties.ubigeo]?.territorio?.pct_agricola||0)>=10,style:{color:'#ffe066',weight:2,fill:false,dashArray:'2 4'},interactive:false}),
   pastizal:L.geoJSON(D.geojson,{filter:f=>(byU[f.properties.ubigeo]?.territorio?.pct_pastizal||0)>=50,style:{color:'#b6f07a',weight:2,fill:false,dashArray:'6 3'},interactive:false}),
 };
@@ -394,15 +758,22 @@ document.querySelectorAll('.sw[data-capa]').forEach(cb=>{
   const k=cb.dataset.capa; if(k in capasOn) cb.checked=capasOn[k];
   const apl=()=>{cb.checked?capas[k].addTo(map):map.removeLayer(capas[k]);capasOn[k]=cb.checked;store.set('capas',JSON.stringify(capasOn))};
   cb.addEventListener('change',apl); apl();
+  if(k==='nasa'){const ay=document.getElementById('nasa-ayuda');ayudaNasa();
+    const ver=()=>ay.hidden=!cb.checked; cb.addEventListener('change',ver); ver();}
 });
-document.getElementById('leg-min').onclick=()=>document.getElementById('legend').classList.toggle('closed');
+const movil=matchMedia('(max-width:760px)');
+function legenda(abrir){const lg=document.getElementById('legend');lg.classList.toggle('closed',!abrir);document.getElementById('leg-min').setAttribute('aria-expanded',abrir)}
+document.querySelectorAll('.ic[data-ic]').forEach(s=>s.innerHTML=ICON[s.dataset.ic]||'');
+if(RANGO_FOCOS) document.getElementById('lbl-activos').textContent=`Focos activos (${RANGO_FOCOS})`;
+document.getElementById('leg-min').onclick=()=>legenda(document.getElementById('legend').classList.contains('closed'));
+legenda(!movil.matches);   // en el celular la leyenda empieza plegada
 document.getElementById('leg-niveles').innerHTML=N.slice().reverse().map(n=>`<div class="lv"><i style="background:${col(n)}"></i>${n}${lang==='qu'?` · ${D.nivel_qu[n]}`:''}</div>`).join('');
 L.DomEvent.disableClickPropagation(document.getElementById('legend'));
 L.DomEvent.disableScrollPropagation(document.getElementById('legend'));
 
 function encuadrar(){
   const ls=distZona().map(d=>capaPorU[d.ubigeo]).filter(Boolean);
-  if(ls.length) map.fitBounds(L.featureGroup(ls).getBounds(),{paddingTopLeft:[innerWidth>820?150:10,10],paddingBottomRight:[10,10]});
+  if(ls.length) map.fitBounds(L.featureGroup(ls).getBounds(),{paddingTopLeft:[innerWidth>760?150:10,10],paddingBottomRight:[10,10]});
 }
 
 // ---------- Panel derecho ----------
@@ -414,24 +785,23 @@ function zonaTexto(ds){
   return t>.62?'la zona norte':t<.38?'la zona sur':'la zona centro';
 }
 function alertaCard(){
-  const el=document.getElementById('alert-card');
-  const lugar=zona?`la provincia ${zona}`:'Puno';
-  if(sel){ // ficha corta del distrito
+  const el=document.getElementById('alert-card'), vol=document.getElementById('volver');
+  const lugar=zona?`la provincia ${zona}`:'Puno', tit=esc(D.titulo[lang]);
+  vol.hidden=!sel; document.getElementById('volver-t').textContent=`Volver a ${zona?'la provincia':'toda la región'}`;
+  if(sel){ // resumen del distrito seleccionado
     const d=byU[sel], al=conAlerta(d);
     el.className='card alert'+(al?'':' ok');
-    el.innerHTML=`<div class="hd">${al?'⚠':'✓'} ${al?D.titulo[lang]:'Sin alerta activa'}</div><div class="bd">
-      <p><b>${esc(d.distrito)}</b> · ${esc(d.provincia)}<br>Riesgo <b>${d.nivel_final.toLowerCase()}</b>${lang==='qu'?` (${D.nivel_qu[d.nivel_final]})`:''} · probabilidad de incendio en ${esc(D.mes_pronostico)}: <b>${pct(d.probabilidad)}</b></p>
+    el.innerHTML=`<div class="hd">${al?ICON.avisoBlanco:'✓'} ${al?tit:'Sin alerta activa'}</div><div class="bd">${al?ILUS_LLAMAS:''}
+      <p><b>${esc(d.distrito)} · ${esc(d.provincia)}</b><br>Riesgo <b>${esc(d.nivel_final.toLowerCase())}</b>${lang==='qu'?` (${esc(D.nivel_qu[d.nivel_final])})`:''} · Probabilidad de incendio en ${esc(D.mes_pronostico)}: <b>${pct(d.probabilidad)}</b></p>
       ${d.motivos_alerta.length?`<p class="small">${d.motivos_alerta.map(esc).join('<br>')}</p>`:''}
-      <button class="btn" id="ver-rec">Ver recomendaciones <span>→</span></button>
-      <button class="btn ghost" id="ver-todo" style="width:100%">← Volver a ${esc(zona?'la provincia':'toda la región')}</button></div>`;
+      <button class="btn rec" id="ver-rec">Ver recomendaciones <span aria-hidden="true">→</span></button></div>`;
     document.getElementById('ver-rec').onclick=()=>ficha(sel);
-    document.getElementById('ver-todo').onclick=()=>{sel=null;encuadrar();render()};
     return;
   }
   const ds=distZona(), al=ds.filter(conAlerta);
   if(!al.length){
     el.className='card alert ok';
-    el.innerHTML=`<div class="hd">✓ Sin alertas activas</div><div class="bd"><p>No hay distritos en nivel alto o muy alto en ${esc(lugar)} para ${esc(D.mes_pronostico)}. Mantén las buenas prácticas y vigila las quemas.</p><button class="btn" id="ver-rec">Ver recomendaciones <span>→</span></button></div>`;
+    el.innerHTML=`<div class="hd">✓ Sin alertas activas</div><div class="bd"><p>No hay distritos en nivel alto o muy alto en ${esc(lugar)} para ${esc(D.mes_pronostico)}. Mantén las buenas prácticas y vigila las quemas.</p><button class="btn rec" id="ver-rec">Ver recomendaciones <span aria-hidden="true">→</span></button></div>`;
   } else {
     const muy=al.filter(d=>d.nivel_final==='Muy alto');
     const viento=Math.max(0,...al.flatMap(d=>(d.tiempo||[]).slice(0,3).map(x=>x.viento_max||0)));
@@ -439,11 +809,11 @@ function alertaCard(){
     const focos=al.reduce((s,d)=>s+d.focos_48h,0);
     const top=al.slice().sort((a,b)=>N.indexOf(b.nivel_final)-N.indexOf(a.nivel_final)||b.probabilidad-a.probabilidad).slice(0,3).map(d=>d.distrito);
     el.className='card alert';
-    el.innerHTML=`<div class="hd">⚠ ${D.titulo[lang]==='Alerta orientativa de incendio'?'Alerta de incendio':D.titulo[lang]}</div><div class="bd">
+    el.innerHTML=`<div class="hd">${ICON.avisoBlanco} ${tit}</div><div class="bd">${ILUS_LLAMAS}
       <p>Riesgo ${muy.length?'muy alto':'alto'} en ${esc(zonaTexto(al))} de ${esc(lugar)}: <b>${al.length}</b> distrito(s) con alerta, entre ellos ${top.map(esc).join(', ')}.
       ${secos?`Posible propagación en los próximos días si continúan el aire seco y el viento (hasta ${Math.round(viento)} km/h).`:''}
       ${focos?`<br><b>${focos}</b> foco(s) activo(s) detectado(s) por satélite en las últimas 48 h.`:''}</p>
-      <button class="btn" id="ver-rec">Ver recomendaciones <span>→</span></button></div>`;
+      <button class="btn rec" id="ver-rec">Ver recomendaciones <span aria-hidden="true">→</span></button></div>`;
   }
   document.getElementById('ver-rec').onclick=()=>ficha(null);
 }
@@ -455,28 +825,81 @@ function zonas(){
   const com=D.capas.lugares.filter(p=>setU.has(p[4]));
   const comD=new Set(com.map(p=>p[4])).size;
   const bio=D.capas.protegidas.filter(a=>a.lineas.some(r=>r.some(([x,y])=>al.some(d=>dentro(d.ubigeo,x,y))))).length;
-  const z=[['🌾','Cultivos',`${cult} distrito${cult===1?'':'s'}`],['🌿','Pastizales',`${past} distrito${past===1?'':'s'}`],
-           ['🏠','Comunidades',com.length?`${com.length} centros poblados en ${comD} distrito${comD===1?'':'s'}`:`${al.length?al.length+' distrito'+(al.length===1?'':'s'):'0 distritos'}`],
-           ['🐾','Biodiversidad',`${bio} área${bio===1?'':'s'} protegida${bio===1?'':'s'}`]];
+  const z=[[ICON.brote,'Cultivos',`${cult} distrito${cult===1?'':'s'}`],[ICON.pasto,'Pastizales',`${past} distrito${past===1?'':'s'}`],
+           [ICON.gente,'Comunidades',com.length?`${com.length} centros poblados en ${comD} distrito${comD===1?'':'s'}`:`${al.length?al.length+' distrito'+(al.length===1?'':'s'):'0 distritos'}`],
+           [ICON.hoja,'Biodiversidad',`${bio} área${bio===1?'':'s'} protegida${bio===1?'':'s'}`]];
   document.getElementById('zones').innerHTML=(al.length?'':`<div class="small muted">Sin distritos en alerta en esta zona.</div>`)+
-    z.map(([i,t,v])=>`<div class="zone"><span class="zi">${i}</span><span><b>${t}:</b> ${v}</span></div>`).join('');
+    z.map(([i,t,v])=>`<div class="zone"><span class="zi${t==='Comunidades'?' zr':''}">${i}</span><span><b>${t}:</b> ${v}</span></div>`).join('');
 }
 // punto dentro de polígono (para cruzar áreas protegidas con distritos en alerta)
 const geomU=Object.fromEntries(D.geojson.features.map(f=>[f.properties.ubigeo,f.geometry]));
 function dentro(u,x,y){const g=geomU[u];if(!g)return false;const polys=g.type==='Polygon'?[g.coordinates]:g.coordinates;
   return polys.some(p=>{let c=false;const r=p[0];for(let i=0,j=r.length-1;i<r.length;j=i++){const[xi,yi]=r[i],[xj,yj]=r[j];if((yi>y)!==(yj>y)&&x<(xj-xi)*(y-yi)/(yj-yi)+xi)c=!c}return c})}
 
+// ---------- Tarjetas bajo el mapa (datos reales del pronóstico) ----------
+const siluetaCache={};
+function silueta(ds,alertas){
+  const clave=(zona||'*')+'|'+ds.length+'|'+alertas.size;
+  if(siluetaCache[clave]) return siluetaCache[clave];
+  const anillos=[];
+  ds.forEach(d=>{const g=geomU[d.ubigeo];if(!g)return;(g.type==='Polygon'?[g.coordinates]:g.coordinates).forEach(p=>anillos.push([d.ubigeo,p[0]]))});
+  if(!anillos.length) return '';
+  let x0=1e9,x1=-1e9,y0=1e9,y1=-1e9;
+  anillos.forEach(([,r])=>r.forEach(([x,y])=>{x0=Math.min(x0,x);x1=Math.max(x1,x);y0=Math.min(y0,y);y1=Math.max(y1,y)}));
+  const W=120,H=80,k=Math.min(W/((x1-x0)*.966||1),H/((y1-y0)||1));
+  const px=x=>((x-x0)*.966*k).toFixed(1), py=y=>((y1-y)*k).toFixed(1);
+  const camino=r=>'M'+r.filter((_,i)=>i%2===0||i===r.length-1).map(([x,y])=>px(x)+','+py(y)).join('L')+'Z';
+  const svg=`<svg class="kart sil" viewBox="0 0 ${W} ${H}" aria-hidden="true" focusable="false" preserveAspectRatio="xMaxYMax meet">`+
+    anillos.map(([u,r])=>`<path d="${camino(r)}" fill="var(${alertas.has(u)?'--sil2':'--sil1'})" stroke="var(--panel)" stroke-width=".6"/>`).join('')+'</svg>';
+  return siluetaCache[clave]=svg;
+}
+function kpis(){
+  const el=document.getElementById('kpirow'); if(!el) return;
+  const ds=distZona(), al=ds.filter(conAlerta), setU=new Set(al.map(d=>d.ubigeo));
+  const muy=al.filter(d=>d.nivel_final==='Muy alto').length;
+  // 1) Focos activos detectados por satélite en el periodo que traen los datos
+  const fa=D.capas.focos_activos.filter(p=>{const d=byU[p[5]];return d&&enZona(d)});
+  const dias=[]; if(FECHAS_FOCOS.length){const s=FECHAS_FOCOS.slice().sort();
+    for(let t=new Date(s[0]+'T12:00'),f=new Date(s[s.length-1]+'T12:00');t<=f;t.setDate(t.getDate()+1)) dias.push(t.toISOString().slice(0,10))}
+  const porDia=dias.map(f=>fa.filter(p=>String(p[2]).slice(0,10)===f).length);
+  let grafico='';
+  if(porDia.length>1){const W=130,H=54,mx=Math.max(1,...porDia),X=i=>(i*(W-4)/(porDia.length-1)+2).toFixed(1),Y=v=>(H-4-v/mx*(H-10)).toFixed(1);
+    const l=porDia.map((v,i)=>`${i?'L':'M'}${X(i)},${Y(v)}`).join('');
+    grafico=`<svg class="kart" viewBox="0 0 ${W} ${H}" aria-hidden="true" focusable="false" preserveAspectRatio="xMaxYMax meet"><defs><linearGradient id="gk" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#e53935" stop-opacity=".35"/><stop offset="1" stop-color="#e53935" stop-opacity="0"/></linearGradient></defs>
+      <path d="${l}L${X(porDia.length-1)},${H}L${X(0)},${H}Z" fill="url(#gk)"/><path d="${l}" fill="none" stroke="#e53935" stroke-width="2.2" stroke-linejoin="round"/></svg>`}
+  const resumenDias=dias.length?' Focos por día: '+dias.map((f,i)=>`${new Date(f+'T12:00').getDate()}: ${porDia[i]}`).join(', ')+'.':'';
+  // 3) Comunidades (centros poblados) en distritos con alerta
+  const com=D.capas.lugares.filter(p=>setU.has(p[4])), comD=new Set(com.map(p=>p[4])).size;
+  el.innerHTML=`
+    <section class="card kcard" aria-labelledby="k1">
+      <span class="ki">${ICON.fuego}</span><h3 id="k1">Focos activos</h3>
+      <div class="ks">${RANGO_FOCOS?`detectados del ${esc(RANGO_FOCOS)}`:'sin datos de focos'}</div>
+      <div class="kn">${fa.length}</div>${grafico}<span class="sr">${resumenDias}</span>
+    </section>
+    <section class="card kcard" aria-labelledby="k2">
+      <span class="ki">${ICON.aviso}</span><h3 id="k2">Distritos con alerta</h3>
+      <div class="ks">${muy} en Muy alto</div>
+      <div class="kn">${al.length}</div>${silueta(ds,setU)}
+    </section>
+    <section class="card kcard" aria-labelledby="k3">
+      <span class="ki">${ICON.gente}</span><h3 id="k3">Comunidades en alerta</h3>
+      <div class="ks">${D.capas.lugares.length?`centros poblados en ${comD} distrito${comD===1?'':'s'} con alerta`:'sin datos de centros poblados'}</div>
+      <div class="kn">${D.capas.lugares.length?com.length:'–'}</div>${ILUS_PASTO}
+    </section>`;
+}
+
 function condiciones(){
   const ds=distZona().slice().sort((a,b)=>N.indexOf(b.nivel_final)-N.indexOf(a.nivel_final)||b.probabilidad-a.probabilidad);
   const d=sel?byU[sel]:ds[0]; if(!d) return;
   const c=actual[d.ubigeo];
   document.getElementById('now-t').textContent='Condiciones actuales';
-  document.getElementById('now').innerHTML=`<div><span>🌡 Temperatura</span><b>${c?fmt1(c.temperature_2m)+'°C':'–'}</b></div>
-    <div><span>💨 Viento</span><b>${c?Math.round(c.wind_speed_10m):'–'}</b><span>km/h</span></div>
-    <div><span>💧 Humedad</span><b>${c?Math.round(c.relative_humidity_2m)+'%':'–'}</b></div>`;
+  document.getElementById('now').innerHTML=`<div><span class="nl">${ICON.termometro}Temperatura</span><b>${c?fmt1(c.temperature_2m)+' °C':'–'}</b></div>
+    <div><span class="nl">${ICON.viento}Viento</span><b>${c?Math.round(c.wind_speed_10m):'–'}</b><span>km/h</span></div>
+    <div><span class="nl">${ICON.gota}Humedad</span><b>${c?Math.round(c.relative_humidity_2m)+'%':'–'}</b></div>`;
   const t=d.tiempo||[];
   document.getElementById('days').innerHTML=t.map(x=>{const f=new Date(x.fecha+'T12:00');return `<div class="day" title="${esc(x.fecha)} · peligro ${x.peligro} · hum. mín ${x.hum_min}% · viento máx ${x.viento_max} km/h · lluvia ${x.lluvia} mm"><b>${f.toLocaleDateString('es-PE',{weekday:'short'}).slice(0,2)}</b>${Math.round(x.tmax)}°<i style="background:var(${PEL_COL[x.peligro]})"></i></div>`}).join('');
-  document.getElementById('now-src').innerHTML=`${esc(d.distrito)}${sel?'':' (distrito de mayor riesgo)'} · ${c?'en vivo, Open-Meteo '+esc(c.time.slice(11)):'sin conexión'}${t.length?'<br>Barra de color: peligro meteorológico de incendio por día':''}`;
+  document.getElementById('now').classList.toggle('cargando',!c&&cargandoVivo);
+  document.getElementById('now-src').innerHTML=`${esc(d.distrito)}${sel?'':' (distrito de mayor riesgo)'} · ${c?'en vivo, Open-Meteo '+esc(c.time.slice(11)):cargandoVivo?'cargando el tiempo en vivo…':'sin conexión'}${t.length?'<br>Barra de color: peligro meteorológico de incendio por día':''}`;
 }
 
 // ---------- Ficha / recomendaciones ----------
@@ -493,6 +916,17 @@ function spark(u){
    <text x="${w-6}" y="${h-2}" text-anchor="end" font-size="10" fill="var(--muted)" font-family="IBM Plex Mono,monospace">${L_[L_.length-1]}</text></svg>
    <div class="small muted"><span style="color:var(--accent)">━</span> probabilidad estimada por la IA · <span style="color:var(--muyalto)">▮</span> mes con incendio detectado por satélite</div>`;
 }
+// Frecuencia observada en la evaluación (evaluacion.calibracion) para el rango de esta probabilidad
+function calibrado(p){
+  const cal=(D.evaluacion||{}).calibracion; if(!Array.isArray(cal)||p==null) return null;
+  for(const b of cal){const m=/\(([\d.]+),\s*([\d.]+)\]/.exec(b.rango||''); if(!m||b.observado==null) continue;
+    const a=+m[1], z=+m[2]; if((p>a||(a===0&&p===0))&&p<=z) return Math.round(b.observado*100)}
+  return null;
+}
+function pieFicha(){
+  return `<footer class="dlg-f small muted"><p>${esc(D.aviso[lang])} En emergencia llama al <b>116</b> (Bomberos).</p>
+    <p>Generado ${esc(D.generado)} · pronóstico de ${esc(D.mes_pronostico)} · <button type="button" class="lnk" data-ir-fuentes>Fuentes de datos</button></p></footer>`;
+}
 function ficha(u){
   const q=lang==='qu', dlg=document.getElementById('dlg');
   const draft=q&&!D.quechua_validado?'<div class="draft">Borrador en quechua · falta validación con hablantes locales</div>':'';
@@ -502,26 +936,35 @@ function ficha(u){
     document.getElementById('dlg-t').textContent=zona||'Puno';
     document.getElementById('dlg-b').innerHTML=`
       <div><h3>Recomendaciones · nivel ${nv}</h3>${draft}<ul>${D.recomendaciones[nv][lang].map(t=>`<li>${esc(t)}</li>`).join('')}</ul></div>
-      <div><h3>Distritos con alerta (${al.length})</h3>${al.length?`<table><tbody>${al.map(d=>`<tr class="clk" data-u="${d.ubigeo}"><td><span class="chip ${d.nivel_final==='Medio'?'dk':''}" style="background:${col(d.nivel_final)}">${d.nivel_final}</span></td><td>${esc(d.distrito)}</td><td class="small muted">${esc(d.provincia)}</td><td class="num">${pct(d.probabilidad)}</td></tr>`).join('')}</tbody></table>`:'<p class="small muted">Ninguno.</p>'}</div>
-      <p class="small muted">${esc(D.aviso[lang])} En emergencia llama al <b>116</b> (Bomberos).</p>`;
-    dlg.querySelectorAll('tr[data-u]').forEach(t=>t.onclick=()=>{dlg.close();seleccionar(t.dataset.u,true)});
+      <div><h3>Distritos con alerta (${al.length})</h3>${al.length?`<div class="tblx"><table><tbody>${al.map(d=>`<tr class="clk" tabindex="0" data-u="${d.ubigeo}"><td><span class="chip ${dk(d.nivel_final)}" style="background:${col(d.nivel_final)}">${d.nivel_final}</span></td><td>${esc(d.distrito)}</td><td class="small muted">${esc(d.provincia)}</td><td class="num">${pct(d.probabilidad)}</td></tr>`).join('')}</tbody></table></div>`:'<p class="small muted">Ninguno.</p>'}</div>
+      ${pieFicha()}`;
+    dlg.querySelectorAll('tr[data-u]').forEach(t=>{const ir_=()=>{dlg.close();seleccionar(t.dataset.u,true)};t.onclick=ir_;t.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();ir_()}}});
   } else {
-    const d=byU[u], c=d.condiciones, t=d.territorio||{};
+    const d=byU[u], c=d.condiciones||{}, t=d.territorio||{}, sube=d.nivel_final!==d.nivel;
+    const nivTxt=n=>esc(n)+(q&&D.nivel_qu&&D.nivel_qu[n]?' · '+esc(D.nivel_qu[n]):'');
+    const chip=(n,extra='')=>`<span class="chip ${dk(n)}" style="background:${col(n)}${extra}">${nivTxt(n)}</span>`;
+    const obs=calibrado(d.probabilidad);
     document.getElementById('dlg-p').textContent=d.provincia;
     document.getElementById('dlg-t').textContent=d.distrito;
     document.getElementById('dlg-b').innerHTML=`
-      <div style="display:flex;gap:16px;align-items:center;flex-wrap:wrap">
-        <span class="chip ${d.nivel_final==='Medio'?'dk':''}" style="background:${col(d.nivel_final)};font-size:14px;padding:4px 12px">${q?D.nivel_qu[d.nivel_final]+' · ':''}${d.nivel_final}</span>
-        <div><div class="prob">${pct(d.probabilidad)}</div><div class="small muted">probabilidad de al menos un incendio en ${esc(D.mes_pronostico)} (modelo: ${d.nivel})</div></div></div>
-      ${d.motivos_alerta.length?`<div><h3>Ajuste de la alerta</h3><ul>${d.motivos_alerta.map(m=>`<li>${esc(m)}</li>`).join('')}</ul></div>`:''}
-      <div><h3>${conAlerta(d)?esc(D.titulo[lang]):(q?'Yanapaq willakuykuna':'Recomendaciones')}</h3>${draft}<ul>${D.recomendaciones[d.nivel_final][lang].map(x=>`<li>${esc(x)}</li>`).join('')}</ul></div>
-      <div><h3>Por qué este nivel</h3><ul>${d.factores.map(x=>`<li>${esc(x)}</li>`).join('')}</ul></div>
-      <div><h3>Condiciones del último mes</h3><div class="cond"><div><b>${c.temp_max}°</b><span>T. máx</span></div><div><b>${c.lluvia_3m}</b><span>mm lluvia 3 m</span></div><div><b>${c.humedad}%</b><span>humedad</span></div><div><b>${c.viento}</b><span>km/h viento</span></div><div><b>${c.ndvi}</b><span>NDVI</span></div></div></div>
-      ${(d.tiempo||[]).length?`<div><h3>Pronóstico del tiempo · 7 días</h3><table><thead><tr><th>Día</th><th class="num">T. máx</th><th class="num">Hum. mín</th><th class="num">Viento máx</th><th class="num">Lluvia</th><th>Peligro</th></tr></thead><tbody>${d.tiempo.map(x=>`<tr><td>${new Date(x.fecha+'T12:00').toLocaleDateString('es-PE',{weekday:'short',day:'numeric'})}</td><td class="num">${fmt1(x.tmax)}°</td><td class="num">${x.hum_min??'–'}%</td><td class="num">${fmt1(x.viento_max)}</td><td class="num">${fmt1(x.lluvia)}</td><td><span class="chip ${x.peligro==='Moderado'?'dk':''}" style="background:var(${PEL_COL[x.peligro]})">${x.peligro}</span></td></tr>`).join('')}</tbody></table></div>`:''}
+      <section class="hero" style="--c:${col(d.nivel_final)}" aria-label="Resumen del riesgo">
+        <div class="hero-n"><span class="prob">${pct(d.probabilidad)}</span>${chip(d.nivel_final,';font-size:14px;padding:4px 12px')}</div>
+        <p class="hero-t">Probabilidad <b>orientativa</b> de al menos un incendio en <b>${esc(D.mes_pronostico)}</b>. Riesgo <b>${esc(d.nivel_final.toLowerCase())}</b>${conAlerta(d)?' · <b>con alerta</b>':''}.</p>
+        ${obs!=null?`<p class="hero-i">De cada 100 distritos con esta probabilidad, unos <b>${obs}</b> tuvieron incendio detectado por satélite (evaluación con años pasados).</p>`:''}
+      </section>
+      ${sube?`<div class="ajuste" role="note"><b>El modelo indica ${chip(d.nivel)}; sube a ${chip(d.nivel_final)} por:</b><ul>${d.motivos_alerta.map(m=>`<li>${esc(m)}</li>`).join('')||'<li>regla de corto plazo</li>'}</ul></div>`
+        :d.motivos_alerta.length?`<div class="ajuste" role="note"><b>Además:</b><ul>${d.motivos_alerta.map(m=>`<li>${esc(m)}</li>`).join('')}</ul></div>`:''}
+      <div><h3>¿Por qué?</h3><ul class="why">${(d.factores||[]).slice(0,3).map(x=>`<li>${esc(x)}</li>`).join('')||'<li>Sin factores destacados este mes.</li>'}</ul></div>
+      <div class="todo"><h3>${q?'Yanapaq willakuykuna':'¿Qué hacer?'}</h3>${draft}<ul>${D.recomendaciones[d.nivel_final][lang].map(x=>`<li>${esc(x)}</li>`).join('')}</ul></div>
+      <h3 class="sep">Datos</h3>
+      ${Array.isArray(d.centro)&&d.centro.length===2?`<div class="wv"><a class="btn ghost" href="${urlWorldview(d)}" target="_blank" rel="noopener noreferrer" aria-label="Ver ${esc(d.distrito)} en NASA Worldview, imagen del ${esc(ayerTxt)} (se abre en una pestaña nueva)"><span aria-hidden="true">🛰</span> Ver en NASA Worldview <span aria-hidden="true">↗</span></a><p class="small muted">Imagen satelital del ${esc(ayerTxt)}. ${AYUDA_NASA}</p></div>`:''}
+      <div><h3>Historial: IA frente a lo ocurrido</h3>${spark(u)||'<p class="small muted">Sin historial suficiente.</p>'}</div>
+      <div><h3>Condiciones del último mes</h3><div class="cond"><div><b>${c.temp_max??'–'}°</b><span>T. máx</span></div><div><b>${c.lluvia_3m??'–'}</b><span>mm lluvia 3 m</span></div><div><b>${c.humedad??'–'}%</b><span>humedad</span></div><div><b>${c.viento??'–'}</b><span>km/h viento</span></div><div><b>${c.ndvi??'–'}</b><span>NDVI</span></div></div></div>
+      ${(d.tiempo||[]).length?`<div><h3>Pronóstico del tiempo · 7 días</h3><div class="tblx"><table><thead><tr><th>Día</th><th class="num">T. máx</th><th class="num">Hum. mín</th><th class="num">Viento máx</th><th class="num">Lluvia</th><th>Peligro</th></tr></thead><tbody>${d.tiempo.map(x=>`<tr><td>${new Date(x.fecha+'T12:00').toLocaleDateString('es-PE',{weekday:'short',day:'numeric'})}</td><td class="num">${fmt1(x.tmax)}°</td><td class="num">${x.hum_min??'–'}%</td><td class="num">${fmt1(x.viento_max)}</td><td class="num">${fmt1(x.lluvia)}</td><td><span class="chip ${oscuroSobre(PEL_COL[x.peligro])?'dk':''}" style="background:var(${PEL_COL[x.peligro]})">${x.peligro}</span></td></tr>`).join('')}</tbody></table></div></div>`:''}
       <div><h3>Territorio</h3><div class="cond"><div><b>${t.altitud_m??'–'}</b><span>m altitud</span></div><div><b>${t.pendiente_pct??'–'}%</b><span>pendiente</span></div><div><b>${t.pct_pastizal??'–'}%</b><span>pastizal</span></div><div><b>${t.pct_agricola??'–'}%</b><span>agrícola</span></div><div><b>${D.capas.lugares.filter(p=>p[4]===u).length}</b><span>centros poblados</span></div></div></div>
-      <div><h3>Historial: IA frente a lo ocurrido</h3>${spark(u)}</div>
-      <p class="small muted">${esc(D.aviso[lang])} En emergencia llama al <b>116</b> (Bomberos).</p>`;
+      ${pieFicha()}`;
   }
+  const lf=dlg.querySelector('[data-ir-fuentes]'); if(lf) lf.onclick=()=>{dlg.close();ir('config')};
   dlg.showModal();
 }
 
@@ -537,11 +980,11 @@ function vistaAlertas(){
   document.getElementById('a-info').textContent=`${ds.length} distrito(s) · ${zona?'provincia '+zona:'toda la región'} · pronóstico ${D.mes_pronostico}`;
   document.getElementById('alist').innerHTML=ds.length?ds.map(d=>`<div class="card acard" tabindex="0" data-u="${d.ubigeo}" style="--c:${col(d.nivel_final)}">
     <div style="display:flex;justify-content:space-between;gap:8px;align-items:flex-start"><div><h3>${esc(d.distrito)}</h3><div class="small muted">${esc(d.provincia)}</div></div>
-    <span class="chip ${d.nivel_final==='Medio'?'dk':''}" style="background:${col(d.nivel_final)}">${d.nivel_final}</span></div>
+    <span class="chip ${dk(d.nivel_final)}" style="background:${col(d.nivel_final)}">${d.nivel_final}</span></div>
     <div class="small" style="margin-top:6px">Probabilidad del mes: <b>${pct(d.probabilidad)}</b>${d.focos_48h?` · 🔥 <b>${d.focos_48h}</b> foco(s) 48 h`:''}</div>
     <ul>${[...d.motivos_alerta,...d.factores].slice(0,4).map(x=>`<li>${esc(x)}</li>`).join('')}</ul></div>`).join('')
-    :'<div class="card pad">No hay distritos con alerta en esta zona. 👍</div>';
-  document.querySelectorAll('.acard').forEach(c=>{c.onclick=()=>ficha(c.dataset.u);c.onkeydown=e=>{if(e.key==='Enter')ficha(c.dataset.u)}});
+    :`<div class="card pad vacio" role="status"><b>✓ ${filtroA==='alerta'?'Sin distritos con alerta':'Sin distritos'}</b><p class="small muted">${filtroA==='alerta'?`Ningún distrito de ${esc(zona?'la provincia '+zona:'la región')} llega al nivel ${esc(D.nivel_alerta)} en ${esc(D.mes_pronostico)}. Usa «Todos» para ver el resto.`:'No hay distritos en esta zona.'}</p></div>`;
+  document.querySelectorAll('.acard').forEach(c=>{c.onclick=()=>ficha(c.dataset.u);c.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();ficha(c.dataset.u)}}});
 }
 document.querySelectorAll('#af button').forEach(b=>b.onclick=()=>{filtroA=b.dataset.f;document.querySelectorAll('#af button').forEach(x=>x.setAttribute('aria-pressed',x===b));vistaAlertas()});
 
@@ -549,8 +992,9 @@ document.querySelectorAll('#af button').forEach(b=>b.onclick=()=>{filtroA=b.data
 function vistaReportes(){
   const ds=distZona(), c={}; ds.forEach(d=>c[d.nivel_final]=(c[d.nivel_final]||0)+1);
   document.getElementById('kpis').innerHTML=N.slice().reverse().map(n=>`<div class="card kpi" style="--c:${col(n)}"><b>${c[n]||0}</b><span>distritos · ${n}</span></div>`).join('');
-  document.getElementById('rows').innerHTML=ds.map(d=>`<tr class="clk" data-u="${d.ubigeo}"><td>${esc(d.distrito)}</td><td>${esc(d.provincia)}</td><td class="num">${pct(d.probabilidad)}</td><td>${d.nivel}</td><td><span class="chip ${d.nivel_final==='Medio'?'dk':''}" style="background:${col(d.nivel_final)}">${d.nivel_final}</span></td><td class="num">${d.focos_48h||''}</td></tr>`).join('');
-  document.querySelectorAll('#rows tr').forEach(t=>t.onclick=()=>ficha(t.dataset.u));
+  document.getElementById('rows').innerHTML=ds.length?ds.map(d=>`<tr class="clk" tabindex="0" data-u="${d.ubigeo}" aria-label="Abrir ficha de ${esc(d.distrito)}"><td>${esc(d.distrito)}</td><td class="c-sec">${esc(d.provincia)}</td><td class="num">${pct(d.probabilidad)}</td><td class="c-sec nw">${d.nivel}</td><td><span class="chip ${dk(d.nivel_final)}" style="background:${col(d.nivel_final)}">${d.nivel_final}</span></td><td class="num">${d.focos_48h||''}</td></tr>`).join(''):'<tr><td colspan="6" class="muted">No hay distritos en esta zona.</td></tr>';
+  document.querySelectorAll('#rows tr[data-u]').forEach(t=>{t.onclick=()=>ficha(t.dataset.u);t.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();ficha(t.dataset.u)}}});
+  requestAnimationFrame(dibujarGraficos);
 }
 const ev=D.evaluacion, m=ev.metricas_prueba;
 document.getElementById('periodos').textContent=ev.version?`Evaluado año por año (${ev.periodos.prueba.replace(', año por año','')}): cada año se pronosticó con un modelo entrenado solo con los años anteriores. Alerta desde ${Math.round(ev.umbral_alerta*100)} %. Anticipación: ${ev.anticipacion}.`:`Entrenado con ${ev.periodos.entrenamiento}, calibrado con ${ev.periodos.validacion} y evaluado con ${ev.periodos.prueba} (años que el modelo no vio). Anticipación: ${ev.anticipacion}.`;
@@ -559,6 +1003,106 @@ document.getElementById('metrics').innerHTML=`<thead><tr><th>Métrica</th><th cl
 const imp={}; ev.importancia.forEach(i=>imp[i.descripcion]=(imp[i.descripcion]||0)+Math.max(0,i.importancia));
 const top=Object.entries(imp).sort((a,b)=>b[1]-a[1]).slice(0,6), mx=top[0]?top[0][1]||1:1;
 document.getElementById('imp').innerHTML=top.map(([d,v])=>`<span>${esc(d[0].toUpperCase()+d.slice(1))}</span><div class="bar" style="width:${Math.max(4,v/mx*100).toFixed(0)}%"></div>`).join('');
+(function kpiAuc(){
+  const a=m&&m[0]&&m[0].auc, ic=ev.intervalos_95&&ev.intervalos_95.auc_ia, el=document.getElementById('kpi-auc');
+  if(typeof a!=='number') return;
+  el.hidden=false;
+  el.innerHTML=`<b>AUC ${a.toFixed(3)}</b><span>${Array.isArray(ic)&&ic.length===2?`IC 95 %: ${(+ic[0]).toFixed(3)}–${(+ic[1]).toFixed(3)} · `:''}0.5 = azar, 1 = perfecto</span>`;
+})();
+
+// ---------- Gráficos de Reportes (Apache ECharts 5.6.0, local en lib/) ----------
+const EC=window.echarts, graficos={}, sinMov=matchMedia('(prefers-reduced-motion: reduce)');
+const cssv=n=>getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+const num=v=>typeof v==='number'&&isFinite(v);
+const f3=v=>(+v).toFixed(3), f1=v=>(+v).toFixed(1);
+function ejes(){const mut=cssv('--muted'),line=cssv('--line');
+  return {axisLine:{lineStyle:{color:line}},axisTick:{lineStyle:{color:line}},
+          axisLabel:{color:mut,fontFamily:'IBM Plex Mono, ui-monospace, monospace',fontSize:11},
+          splitLine:{lineStyle:{color:line}},nameTextStyle:{color:mut,fontSize:11}}}
+function baseG(){const ink=cssv('--ink');
+  return {animation:!sinMov.matches,aria:{enabled:false},textStyle:{fontFamily:'IBM Plex Sans, system-ui, sans-serif',color:ink},
+    grid:{left:8,right:18,top:38,bottom:8,containLabel:true},
+    legend:{top:0,left:0,itemWidth:22,textStyle:{color:ink,fontSize:12}},
+    tooltip:{backgroundColor:cssv('--panel'),borderColor:cssv('--line'),textStyle:{color:ink,fontSize:12},confine:true}}}
+const GRAF={
+  // a) AUC por año: sistema vs. climatología
+  auc:{datos(){const a=ev.por_anio;return Array.isArray(a)&&a.length&&a.every(r=>num(r.auc_ia)&&num(r.auc_referencia))?a:null},
+    alt:a=>'Gráfico de AUC por año. Sistema: '+a.map(r=>`${r.anio} ${f3(r.auc_ia)}`).join(', ')+'. Climatología: '+a.map(r=>`${r.anio} ${f3(r.auc_referencia)}`).join(', ')+'.',
+    opt(a){const E=ejes(),B=baseG(),lo=Math.min(...a.flatMap(r=>[r.auc_ia,r.auc_referencia]));
+      return {...B,tooltip:{...B.tooltip,trigger:'axis',valueFormatter:f3},
+        xAxis:{type:'category',data:a.map(r=>String(r.anio)),...E,splitLine:{show:false}},
+        yAxis:{type:'value',min:Math.max(.5,Math.floor((lo-.03)*20)/20),max:1,...E,axisLabel:{...E.axisLabel,formatter:v=>v.toFixed(2)}},
+        series:[{name:'Sistema (IA)',type:'line',data:a.map(r=>r.auc_ia),color:cssv('--accent'),lineStyle:{width:3},symbol:'circle',symbolSize:9,
+                 label:{show:true,position:'top',color:cssv('--ink'),fontSize:10,formatter:p=>f3(p.value)}},
+                {name:'Climatología (solo historial)',type:'line',data:a.map(r=>r.auc_referencia),color:cssv('--muted'),
+                 lineStyle:{width:2,type:'dashed'},symbol:'triangle',symbolSize:10}]}}},
+  // b) Calibración: predicho vs. observado con diagonal ideal
+  cal:{datos(){const c=ev.calibracion;return Array.isArray(c)&&c.length>1&&c.every(r=>num(r.predicho)&&num(r.observado))?c.slice().sort((x,y)=>x.predicho-y.predicho):null},
+    alt:c=>'Gráfico de calibración. Probabilidad predicha frente a frecuencia observada: '+c.map(r=>`${f1(r.predicho*100)} % predicho, ${f1(r.observado*100)} % observado`).join('; ')+'.',
+    opt(c){const E=ejes(),B=baseG(),pc=v=>Math.round(v*100)+' %',nmax=Math.max(...c.map(r=>r.n||1));
+      const mx=Math.min(1,Math.ceil(Math.max(...c.flatMap(r=>[r.predicho,r.observado]))*10+.5)/10);
+      return {...B,grid:{...B.grid,left:34,bottom:26},
+        tooltip:{...B.tooltip,trigger:'item',formatter:p=>p.seriesIndex?`Rango ${esc(p.data.r)}<br>Predicho: <b>${f1(p.data.value[0]*100)} %</b><br>Observado: <b>${f1(p.data.value[1]*100)} %</b><br>${p.data.n} distrito-meses`:'Calibración perfecta'},
+        xAxis:{type:'value',min:0,max:mx,name:'Probabilidad predicha',nameLocation:'middle',nameGap:26,...E,axisLabel:{...E.axisLabel,formatter:pc}},
+        yAxis:{type:'value',min:0,max:mx,name:'Frecuencia observada',nameLocation:'middle',nameRotate:90,nameGap:42,...E,axisLabel:{...E.axisLabel,formatter:pc}},
+        series:[{name:'Ideal (diagonal)',type:'line',data:[[0,0],[mx,mx]],symbol:'none',color:cssv('--muted'),lineStyle:{type:'dashed',width:1.5}},
+                {name:'Sistema (IA)',type:'line',color:cssv('--accent'),lineStyle:{width:2.5},symbol:'circle',
+                 data:c.map(r=>({value:[r.predicho,r.observado],n:r.n,r:r.rango,symbolSize:7+11*Math.sqrt((r.n||1)/nmax)}))}]}}},
+  // c) Umbrales: detección y falsas alarmas, marcando el umbral por defecto
+  umb:{datos(){const u=ev.umbrales;if(!Array.isArray(u)||u.length<2)return null;
+      const ok=k=>u.every(r=>r.ia&&num(r.ia[k]));
+      if(!u.every(r=>num(r.umbral))||!ok('deteccion_pct'))return null;
+      const tasa=ok('tasa_falsas_alarmas_pct'); if(!tasa&&!ok('falsas_alarmas_pct'))return null;
+      return {u:u.slice().sort((a,b)=>a.umbral-b.umbral),k:tasa?'tasa_falsas_alarmas_pct':'falsas_alarmas_pct',
+              nom:tasa?'Falsas alarmas (meses sin incendio con alerta)':'Alertas sin incendio (de cada 100 alertas)'}},
+    alt:d=>`Gráfico de umbrales. Incendios detectados y ${d.nom.toLowerCase()}: `+d.u.map(r=>`umbral ${Math.round(r.umbral*100)} %: detecta ${f1(r.ia.deteccion_pct)} %, ${f1(r.ia[d.k])} %`).join('; ')+`. Umbral por defecto ${Math.round((ev.umbral_alerta||.15)*100)} %.`,
+    opt(d){const E=ejes(),B=baseG(),def=Math.round((ev.umbral_alerta||.15)*100);
+      document.getElementById('g-umb-t').textContent=`Con un umbral más bajo se detectan más incendios, pero hay más falsas alarmas. El panel usa ${def} %.`+
+        (d.k==='falsas_alarmas_pct'?' Estos datos aún no traen la tasa de falsas alarmas; se muestra el % de alertas sin incendio.':'');
+      return {...B,grid:{...B.grid,top:58,bottom:26},tooltip:{...B.tooltip,trigger:'axis',valueFormatter:v=>f1(v)+' %'},
+        xAxis:{type:'value',min:0,max:Math.ceil(Math.max(...d.u.map(r=>r.umbral))*100/5)*5,name:'Umbral de alerta',nameLocation:'middle',nameGap:26,...E,splitLine:{show:false},axisLabel:{...E.axisLabel,formatter:v=>v+' %'}},
+        yAxis:{type:'value',min:0,max:100,...E,axisLabel:{...E.axisLabel,formatter:v=>v+' %'}},
+        series:[{name:'Incendios detectados',type:'line',data:d.u.map(r=>[r.umbral*100,r.ia.deteccion_pct]),color:cssv('--accent'),lineStyle:{width:3},symbol:'circle',symbolSize:8,
+                 markLine:{symbol:'none',silent:true,lineStyle:{color:cssv('--ink'),type:'solid',width:1.5},
+                           label:{formatter:`${def} % por defecto`,color:cssv('--ink'),fontSize:11,position:'end',distance:4},data:[{xAxis:def}]}},
+                {name:d.nom,type:'line',data:d.u.map(r=>[r.umbral*100,r.ia[d.k]]),color:cssv('--alert'),lineStyle:{width:2.5,type:'dashed'},symbol:'diamond',symbolSize:10}]}}},
+  // d) Importancia por grupos (o por variable si los datos no traen grupos)
+  imp:{datos(){const g=ev.importancia_grupos;
+      if(Array.isArray(g)&&g.length&&g.every(r=>num(r.importancia)))return {grupos:true,f:g.map(r=>[String(r.descripcion||r.variable),Math.max(0,r.importancia)])};
+      if(!Array.isArray(ev.importancia)||!ev.importancia.length)return null;
+      const a={};ev.importancia.forEach(i=>{const n=String(i.descripcion||i.variable);if(num(i.importancia))a[n]=(a[n]||0)+Math.max(0,i.importancia)});
+      const f=Object.entries(a);return f.length?{grupos:false,f}:null},
+    alt:d=>'Gráfico de importancia (caída del AUC): '+d.f.slice().sort((a,b)=>b[1]-a[1]).map(([n,v])=>`${n} ${f3(v)}`).join('; ')+'.',
+    opt(d){const E=ejes(),B=baseG(),cap=t=>t.charAt(0).toUpperCase()+t.slice(1),f=d.f.slice().sort((a,b)=>b[1]-a[1]).slice(0,8).reverse();
+      document.getElementById('g-imp-h').textContent=d.grupos?'Importancia por grupos de variables':'Importancia de las variables (estos datos aún no traen grupos)';
+      return {...B,legend:{show:false},grid:{...B.grid,top:8,right:46,bottom:22},
+        tooltip:{...B.tooltip,trigger:'axis',axisPointer:{type:'shadow'},valueFormatter:v=>'caída del AUC '+f3(v)},
+        xAxis:{type:'value',name:'Caída del AUC',nameLocation:'middle',nameGap:10,...E,axisLabel:{show:false}},
+        yAxis:{type:'category',data:f.map(x=>cap(x[0])),...E,splitLine:{show:false},axisLabel:{color:cssv('--ink'),fontSize:11.5,width:140,overflow:'break'}},
+        series:[{type:'bar',data:f.map(x=>x[1]),color:cssv('--accent'),barMaxWidth:18,itemStyle:{borderRadius:[0,4,4,0]},
+                 label:{show:true,position:'right',color:cssv('--muted'),fontSize:10,formatter:p=>f3(p.value)}}]}}}
+};
+const obsGraf=window.ResizeObserver?new ResizeObserver(es=>es.forEach(e=>{const g=graficos[e.target.id];if(g&&e.contentRect.width)g.resize()})):null;
+function dibujarGraficos(){
+  const msg=document.getElementById('graf-msg');
+  if(!EC){msg.hidden=false;msg.textContent='Los gráficos no están disponibles: falta dashboard/lib/echarts.min.js.';document.getElementById('charts').hidden=true;return}
+  let alguno=false;
+  for(const [k,g] of Object.entries(GRAF)){
+    const card=document.getElementById('g-'+k), el=document.getElementById('c-'+k);
+    try{
+      const d=g.datos();
+      if(!d){card.hidden=true;if(graficos[el.id]){graficos[el.id].dispose();delete graficos[el.id]}continue}
+      card.hidden=false; el.setAttribute('aria-label',g.alt(d));
+      let inst=graficos[el.id]; if(!inst){inst=EC.init(el,null,{renderer:'svg'});graficos[el.id]=inst;if(obsGraf)obsGraf.observe(el)}
+      inst.setOption(g.opt(d),true); inst.resize(); alguno=true;
+      if(k==='imp') document.getElementById('imp-lista').hidden=true;
+    }catch(e){card.hidden=true}
+  }
+  msg.hidden=alguno; if(!alguno) msg.textContent='Los datos de evaluación no traen información para gráficos.';
+}
+const oscuroSO=matchMedia('(prefers-color-scheme: dark)');
+if(oscuroSO.addEventListener) oscuroSO.addEventListener('change',()=>{if(vista==='reportes')dibujarGraficos()});
+
 document.getElementById('dl-csv').onclick=()=>{
   const q=s=>`"${String(s).replace(/"/g,'""')}"`;
   const lin=[['ubigeo','distrito','provincia','probabilidad','nivel_modelo','nivel_final','focos_48h','motivos','factores'].join(',')]
@@ -573,19 +1117,48 @@ document.getElementById('reglas').innerHTML=`<ol style="padding-left:18px;margin
   <li><b>Pronóstico del tiempo (7 días):</b> cada día suma puntos por humedad mínima &lt;${R.humedad_min[0]}% (+1) o &lt;${R.humedad_min[1]}% (+2), viento ≥${R.viento_max[0]} km/h (+1) o ≥${R.viento_max[1]} km/h (+2) y lluvia &lt;${R.lluvia_seca} mm (+1). Si en 3 días hay 2 o más días de peligro Alto/Extremo, el nivel sube un escalón.</li>
   <li><b>Focos activos (NASA FIRMS):</b> si hay focos en las últimas 48 h, el distrito pasa al menos a Alto.</li></ol>
   <p class="muted">Se emite alerta desde el nivel <b>${esc(D.nivel_alerta)}</b>. Las alertas son orientativas y deben validarse con autoridades y comunidades.</p>`;
-document.getElementById('fuentes').innerHTML=((D.fuentes&&D.fuentes.fuentes)||[]).concat(['Condiciones actuales y pronóstico: Open-Meteo (en vivo)','Mapa base: Esri World Imagery / OpenTopoMap']).map(f=>`<li>${esc(f)}</li>`).join('');
+document.getElementById('fuentes').innerHTML=((D.fuentes&&D.fuentes.fuentes)||[]).concat(['Condiciones actuales y pronóstico: Open-Meteo (en vivo)','Mapa base: Esri World Imagery / OpenTopoMap','Imagen satelital del día (opcional): NASA GIBS / Worldview, VIIRS True Color (S-NPP; si no hay imagen, NOAA-20 o NOAA-21)']).map(f=>`<li>${esc(f)}</li>`).join('');
 function setLang(l){lang=l;store.set('lang',l);document.querySelectorAll('#seg-lang button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.l===l));
   document.getElementById('leg-niveles').innerHTML=N.slice().reverse().map(n=>`<div class="lv"><i style="background:${col(n)}"></i>${n}${l==='qu'?` · ${D.nivel_qu[n]}`:''}</div>`).join('');render()}
 document.querySelectorAll('#seg-lang button').forEach(b=>b.onclick=()=>setLang(b.dataset.l));
 function setTheme(t){if(t)document.documentElement.dataset.theme=t;else delete document.documentElement.dataset.theme;store.set('theme',t);
-  document.querySelectorAll('#seg-theme button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.t===t));capaDist.setStyle(estilo)}
+  document.querySelectorAll('#seg-theme button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.t===t));capaDist.setStyle(estilo);if(vista==='reportes')dibujarGraficos()}
 document.querySelectorAll('#seg-theme button').forEach(b=>b.onclick=()=>setTheme(b.dataset.t));
 setTheme(store.get('theme')||'');
 document.querySelectorAll('#seg-base button').forEach(b=>b.onclick=()=>setBase(b.dataset.b));
 document.getElementById('refresh').onclick=()=>enVivo(true);
 
+// ---------- Hoja de impresión para defensa civil ----------
+const PIE_HOJA='Probabilidad orientativa generada por ÑAWPAQ PACHA a partir de datos satelitales públicos. No reemplaza la evaluación en campo.';
+function hojaImpresion(){
+  const q=lang==='qu', ds=distZona().filter(conAlerta)
+    .sort((a,b)=>N.indexOf(b.nivel_final)-N.indexOf(a.nivel_final)||b.probabilidad-a.probabilidad);
+  const colorN=n=>(D.colores&&D.colores[n])||hex(n);
+  const motivo=d=>(d.motivos_alerta&&d.motivos_alerta[0])||(d.factores&&d.factores[0])||'–';
+  const rec=d=>((D.recomendaciones[d.nivel_final]||{})[lang]||[])[0]||'–';
+  const lugar=zona?`Provincia ${zona}`:'Región Puno';
+  document.getElementById('hoja').innerHTML=`
+    <header class="h-cab">
+      <div class="marca">ÑAWPAQ PACHA · Hoja de alertas de incendios de vegetación</div>
+      <h1>Distritos con alerta · ${esc(D.mes_pronostico)} · ${esc(lugar)}</h1>
+      <p>Pronóstico de <b>${esc(D.mes_pronostico)}</b> · generado <b>${esc(D.generado)}</b> · impreso ${esc(hoy.toLocaleDateString('es-PE',{day:'numeric',month:'long',year:'numeric'}))}</p>
+      <p>Alerta desde el nivel <b>${esc(D.nivel_alerta)}</b> · <b>${ds.length}</b> distrito(s) con alerta · En emergencia llame al <b>116</b> (Bomberos).</p>
+      ${q&&!D.quechua_validado?'<p class="draft">Borrador en quechua · falta validación con hablantes locales</p>':''}
+    </header>
+    ${ds.length?`<table>
+      <thead><tr><th>Distrito</th><th>Provincia</th><th class="num">Prob.</th><th>Nivel final</th><th>Motivo principal</th><th>${q?'Yanapaq willakuy':'Recomendación'}</th></tr></thead>
+      <tfoot><tr><td colspan="6" class="h-esp"></td></tr></tfoot>
+      <tbody>${ds.map(d=>`<tr><td><b>${esc(d.distrito)}</b></td><td>${esc(d.provincia)}</td><td class="num">${pct(d.probabilidad)}</td>
+        <td class="h-niv"><i style="--c:${colorN(d.nivel_final)}"></i>${esc(d.nivel_final)}${q&&D.nivel_qu?` · ${esc(D.nivel_qu[d.nivel_final]||'')}`:''}${d.nivel_final!==d.nivel?`<br><span style="font-weight:400">(modelo: ${esc(d.nivel)})</span>`:''}</td>
+        <td>${esc(motivo(d))}</td><td>${esc(rec(d))}</td></tr>`).join('')}</tbody></table>`
+      :`<p class="h-vacio">No hay distritos con alerta en ${esc(lugar)} para ${esc(D.mes_pronostico)}.</p>`}
+    <footer class="h-pie">${PIE_HOJA}</footer>`;
+}
+addEventListener('beforeprint',hojaImpresion);
+['imprimir-hoja','imprimir-hoja-r'].forEach(id=>{const b=document.getElementById(id);if(b)b.onclick=()=>{hojaImpresion();print()}});
+
 // ---------- Navegación ----------
-const TIT={inicio:'Mapa de riesgo de incendios forestales',mapa:'Mapa de riesgo de incendios forestales',alertas:'Alertas de incendio',reportes:'Reportes',config:'Configuración'};
+const TIT={inicio:'Mapa de riesgo de incendios de vegetación',mapa:'Mapa de riesgo de incendios de vegetación',alertas:'Alertas de incendios de vegetación',reportes:'Reportes',config:'Configuración'};
 function ir(v){vista=v;
   document.querySelectorAll('.nav button').forEach(b=>{if(b.dataset.v===v)b.setAttribute('aria-current','page');else b.removeAttribute('aria-current')});
   const home=v==='inicio'||v==='mapa';
@@ -601,22 +1174,29 @@ function ir(v){vista=v;
   render();
 }
 document.querySelectorAll('.nav button').forEach(b=>b.onclick=()=>ir(b.dataset.v));
+document.getElementById('volver').onclick=()=>{sel=null;encuadrar();render()};
 
+let etiquetaSel=null;
 function render(){
   capaDist.setStyle(estilo);
   if(sel&&capaPorU[sel]) capaPorU[sel].bringToFront();
   const n=D.distritos.filter(conAlerta).length, cnt=document.getElementById('nav-cnt');
   cnt.hidden=!n; cnt.textContent=n;
+  if(vista==='inicio'||vista==='mapa') kpis();
+  if(etiquetaSel){map.removeLayer(etiquetaSel);etiquetaSel=null}
+  if(sel&&byU[sel]&&Array.isArray(byU[sel].centro)&&(vista==='inicio'||vista==='mapa')){const d=byU[sel];
+    etiquetaSel=L.tooltip({permanent:true,direction:'top',className:'dist sel',offset:[0,-6]}).setLatLng(d.centro)
+      .setContent(`<b>${esc(d.distrito)}</b><br>Riesgo: ${esc(d.nivel_final)} (${pct(d.probabilidad)})`).addTo(map)}
   if(vista==='inicio'){alertaCard();zonas();condiciones()}
   if(vista==='alertas')vistaAlertas();
   if(vista==='reportes')vistaReportes();
-  document.getElementById('footer').textContent='ÑAWPAQ PACHA entrega estimaciones orientativas para priorizar vigilancia y prevención. No afirma que un incendio ocurrirá y no reemplaza el criterio de autoridades y comunidades.';
+  document.getElementById('foot-aviso').textContent='ÑAWPAQ PACHA entrega estimaciones orientativas para priorizar vigilancia y prevención. No afirma que un incendio ocurrirá y no reemplaza el criterio de autoridades y comunidades.';
 }
 
 // ---------- Datos en vivo: Open-Meteo (condiciones actuales + 7 días) ----------
 async function enVivo(forzar){
   const ds=D.distritos.filter(d=>d.centro), live=document.getElementById('st-live');
-  live.textContent='Actualizando tiempo en vivo…';
+  live.textContent='Actualizando tiempo en vivo…'; cargandoVivo=true; if(vista==='inicio') condiciones();
   try{
     for(let i=0;i<ds.length;i+=50){
       const b=ds.slice(i,i+50);
@@ -633,6 +1213,7 @@ async function enVivo(forzar){
     }
     live.textContent='Tiempo en vivo: '+new Date().toLocaleTimeString('es-PE',{hour:'2-digit',minute:'2-digit'});
   }catch(e){live.textContent='Sin conexión al pronóstico en vivo; se muestran los datos del '+D.generado;}
+  cargandoVivo=false;
   D.distritos.forEach(d=>{if(!d.motivos_alerta)d.motivos_alerta=[]});
   render();
 }
