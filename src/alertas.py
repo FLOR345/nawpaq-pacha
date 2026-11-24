@@ -1,15 +1,17 @@
 """
-ÑAWPAQ PACHA — Textos de alertas y recomendaciones (español y quechua).
+ÑAWPAQ PACHA — Textos de alertas y recomendaciones (español, quechua e inglés).
 
-⚠ Los textos en quechua son un BORRADOR. Antes de usarlos con comunidades
-deben validarse con hablantes locales (quechua collao) y, si corresponde,
-con traductores/intérpretes registrados por el Ministerio de Cultura.
-Si un texto no está validado, el sistema debe mostrar solo el español.
+Los textos en quechua (collao) fueron validados con hablantes locales en
+noviembre de 2026. Si se cambia o agrega un texto en quechua, vuelve a
+validarlo y pon QUECHUA_VALIDADO = True mientras tanto: el panel mostrará
+el aviso de borrador.
+El inglés es para lectores externos (revisores, organismos internacionales).
 """
 
-QUECHUA_VALIDADO = False
+QUECHUA_VALIDADO = True
 
 NIVEL_QU = {"Bajo": "Pisi", "Medio": "Chawpi", "Alto": "Hatun", "Muy alto": "Ancha hatun"}
+NIVEL_EN = {"Bajo": "Low", "Medio": "Medium", "Alto": "High", "Muy alto": "Very high"}
 
 RECOMENDACIONES = {
     "Muy alto": {
@@ -21,6 +23,10 @@ RECOMENDACIONES = {
                "Kamachikuqkunawan, ayllu brigadakunawan qhawariy.",
                "Uywaykita, chakraykita waqaychay; yakuta, llamk'anakunata wakichiy.",
                "Q'usnita ninatapas rikuspaqa, 116 yupayman waqyay."],
+        "en": ["Avoid any burning of grassland, ichu grass or crop residues.",
+               "Coordinate surveillance with local authorities and community brigades.",
+               "Protect livestock and crops; keep water and tools at hand.",
+               "If you see smoke or fire, call 116 (Fire Department) and notify your local authority."],
     },
     "Alto": {
         "es": ["Posterga las quemas agrícolas hasta que bajen las condiciones de riesgo.",
@@ -29,24 +35,33 @@ RECOMENDACIONES = {
         "qu": ["Ama kay p'unchaykunapi chakrata kanaychu.",
                "Wasiyki, kanchayki muyuriqta ch'aki q'achuta pichay.",
                "Llaqta kamachikuqpa willakuyninkunata uyariy."],
+        "en": ["Postpone agricultural burning until risk conditions decrease.",
+               "Clear dry grass around homes and livestock pens.",
+               "Stay alert to warnings from your municipality."],
     },
     "Medio": {
         "es": ["Vigila las quemas y no las dejes sin control.",
                "Revisa los cortafuegos alrededor de viviendas y corrales."],
         "qu": ["Kanaykunata qhawariy, ama sapallanta saqiychu.",
                "Wasiyki muyuriqpi nina harkaykunata qhawariy."],
+        "en": ["Supervise any burning and never leave it unattended.",
+               "Check the firebreaks around homes and livestock pens."],
     },
     "Bajo": {
         "es": ["Condiciones de riesgo bajas. Mantén las buenas prácticas."],
         "qu": ["Kunanqa pisi riesgo kachkan. Allin ruraykunata hinalla ruray."],
+        "en": ["Low risk conditions. Keep up good practices."],
     },
 }
 
-TITULO = {"es": "Alerta orientativa de incendio", "qu": "Ninamanta willakuy"}
+TITULO = {"es": "Alerta orientativa de incendio", "qu": "Ninamanta willakuy",
+          "en": "Indicative fire alert"}
 AVISO = {
     "es": "Estimación orientativa: no afirma que un incendio ocurrirá. "
           "Debe revisarse con el criterio de autoridades y comunidades.",
     "qu": "Kayqa yanapaq willakuylla, manam nichkanchu nina kanqapuni nispa.",
+    "en": "Indicative estimate: it does not state that a fire will occur. "
+          "It must be reviewed with the judgement of authorities and communities.",
 }
 
 

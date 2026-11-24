@@ -561,7 +561,7 @@ tbody tr.clk:hover td{background:var(--accent-soft)}
       <div class="cfg">
         <div class="card pad">
           <h2>Preferencias</h2>
-          <div class="row"><span>Idioma de las alertas</span><div class="seg" id="seg-lang"><button data-l="es" aria-pressed="true">Español</button><button data-l="qu" aria-pressed="false">Quechua</button></div></div>
+          <div class="row"><span>Idioma de las alertas</span><div class="seg" id="seg-lang"><button data-l="es" aria-pressed="true">Español</button><button data-l="qu" aria-pressed="false">Quechua</button><button data-l="en" aria-pressed="false" lang="en">English</button></div></div>
           <div class="row"><span>Tema</span><div class="seg" id="seg-theme"><button data-t="" aria-pressed="true">Auto</button><button data-t="light" aria-pressed="false">Claro</button><button data-t="dark" aria-pressed="false">Oscuro</button></div></div>
           <div class="row"><span>Mapa base</span><div class="seg" id="seg-base"><button data-b="sat" aria-pressed="true">Satélite</button><button data-b="topo" aria-pressed="false">Relieve</button></div></div>
           <div class="row"><span>Pronóstico del tiempo en vivo</span><button class="btn ghost" id="refresh">↻ Actualizar ahora</button></div>
@@ -648,6 +648,13 @@ const RANGO_FOCOS=rangoFechas(FECHAS_FOCOS);
 const store = {get(k){try{return localStorage.getItem('nawpaq.'+k)}catch(e){return null}}, set(k,v){try{localStorage.setItem('nawpaq.'+k,v)}catch(e){}}};
 let lang = store.get('lang')||'es', zona = '', sel = null, vista = 'inicio', filtroA = 'alerta';
 let actual = {}, cargandoVivo = false;   // condiciones actuales en vivo por ubigeo
+// Textos de alerta en el idioma elegido (si faltan, se usa el español)
+const NIV_TR={qu:D.nivel_qu||{}, en:D.nivel_en||{'Bajo':'Low','Medio':'Medium','Alto':'High','Muy alto':'Very high'}};
+const tx=o=>o?(o[lang]||o.es||''):'';
+const nivTr=n=>(lang!=='es'&&NIV_TR[lang]&&NIV_TR[lang][n])||'';
+const recs=n=>{const r=D.recomendaciones[n]||{};return r[lang]||r.es||[]};
+const tQueHacer=()=>({qu:'Yanapaq willakuykuna',en:'What to do'})[lang]||'¿Qué hacer?';
+const tRecom=()=>({qu:'Yanapaq willakuy',en:'Recommendation'})[lang]||'Recomendación';
 
 // ---------- Regla de alerta de corto plazo (igual que src/alertas.py) ----------
 const R = D.peligro_tiempo;
@@ -767,7 +774,7 @@ document.querySelectorAll('.ic[data-ic]').forEach(s=>s.innerHTML=ICON[s.dataset.
 if(RANGO_FOCOS) document.getElementById('lbl-activos').textContent=`Focos activos (${RANGO_FOCOS})`;
 document.getElementById('leg-min').onclick=()=>legenda(document.getElementById('legend').classList.contains('closed'));
 legenda(!movil.matches);   // en el celular la leyenda empieza plegada
-document.getElementById('leg-niveles').innerHTML=N.slice().reverse().map(n=>`<div class="lv"><i style="background:${col(n)}"></i>${n}${lang==='qu'?` · ${D.nivel_qu[n]}`:''}</div>`).join('');
+document.getElementById('leg-niveles').innerHTML=N.slice().reverse().map(n=>`<div class="lv"><i style="background:${col(n)}"></i>${n}${nivTr(n)?` · ${nivTr(n)}`:''}</div>`).join('');
 L.DomEvent.disableClickPropagation(document.getElementById('legend'));
 L.DomEvent.disableScrollPropagation(document.getElementById('legend'));
 
@@ -786,13 +793,13 @@ function zonaTexto(ds){
 }
 function alertaCard(){
   const el=document.getElementById('alert-card'), vol=document.getElementById('volver');
-  const lugar=zona?`la provincia ${zona}`:'Puno', tit=esc(D.titulo[lang]);
+  const lugar=zona?`la provincia ${zona}`:'Puno', tit=esc(tx(D.titulo));
   vol.hidden=!sel; document.getElementById('volver-t').textContent=`Volver a ${zona?'la provincia':'toda la región'}`;
   if(sel){ // resumen del distrito seleccionado
     const d=byU[sel], al=conAlerta(d);
     el.className='card alert'+(al?'':' ok');
     el.innerHTML=`<div class="hd">${al?ICON.avisoBlanco:'✓'} ${al?tit:'Sin alerta activa'}</div><div class="bd">${al?ILUS_LLAMAS:''}
-      <p><b>${esc(d.distrito)} · ${esc(d.provincia)}</b><br>Riesgo <b>${esc(d.nivel_final.toLowerCase())}</b>${lang==='qu'?` (${esc(D.nivel_qu[d.nivel_final])})`:''} · Probabilidad de incendio en ${esc(D.mes_pronostico)}: <b>${pct(d.probabilidad)}</b></p>
+      <p><b>${esc(d.distrito)} · ${esc(d.provincia)}</b><br>Riesgo <b>${esc(d.nivel_final.toLowerCase())}</b>${nivTr(d.nivel_final)?` (${esc(nivTr(d.nivel_final))})`:''} · Probabilidad de incendio en ${esc(D.mes_pronostico)}: <b>${pct(d.probabilidad)}</b></p>
       ${d.motivos_alerta.length?`<p class="small">${d.motivos_alerta.map(esc).join('<br>')}</p>`:''}
       <button class="btn rec" id="ver-rec">Ver recomendaciones <span aria-hidden="true">→</span></button></div>`;
     document.getElementById('ver-rec').onclick=()=>ficha(sel);
@@ -924,7 +931,7 @@ function calibrado(p){
   return null;
 }
 function pieFicha(){
-  return `<footer class="dlg-f small muted"><p>${esc(D.aviso[lang])} En emergencia llama al <b>116</b> (Bomberos).</p>
+  return `<footer class="dlg-f small muted"><p>${esc(tx(D.aviso))} En emergencia llama al <b>116</b> (Bomberos).</p>
     <p>Generado ${esc(D.generado)} · pronóstico de ${esc(D.mes_pronostico)} · <button type="button" class="lnk" data-ir-fuentes>Fuentes de datos</button></p></footer>`;
 }
 function ficha(u){
@@ -935,13 +942,13 @@ function ficha(u){
     document.getElementById('dlg-p').textContent=zona?'Provincia':'Región';
     document.getElementById('dlg-t').textContent=zona||'Puno';
     document.getElementById('dlg-b').innerHTML=`
-      <div><h3>Recomendaciones · nivel ${nv}</h3>${draft}<ul>${D.recomendaciones[nv][lang].map(t=>`<li>${esc(t)}</li>`).join('')}</ul></div>
+      <div><h3>Recomendaciones · nivel ${nv}</h3>${draft}<ul>${recs(nv).map(t=>`<li>${esc(t)}</li>`).join('')}</ul></div>
       <div><h3>Distritos con alerta (${al.length})</h3>${al.length?`<div class="tblx"><table><tbody>${al.map(d=>`<tr class="clk" tabindex="0" data-u="${d.ubigeo}"><td><span class="chip ${dk(d.nivel_final)}" style="background:${col(d.nivel_final)}">${d.nivel_final}</span></td><td>${esc(d.distrito)}</td><td class="small muted">${esc(d.provincia)}</td><td class="num">${pct(d.probabilidad)}</td></tr>`).join('')}</tbody></table></div>`:'<p class="small muted">Ninguno.</p>'}</div>
       ${pieFicha()}`;
     dlg.querySelectorAll('tr[data-u]').forEach(t=>{const ir_=()=>{dlg.close();seleccionar(t.dataset.u,true)};t.onclick=ir_;t.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();ir_()}}});
   } else {
     const d=byU[u], c=d.condiciones||{}, t=d.territorio||{}, sube=d.nivel_final!==d.nivel;
-    const nivTxt=n=>esc(n)+(q&&D.nivel_qu&&D.nivel_qu[n]?' · '+esc(D.nivel_qu[n]):'');
+    const nivTxt=n=>esc(n)+(nivTr(n)?' · '+esc(nivTr(n)):'');
     const chip=(n,extra='')=>`<span class="chip ${dk(n)}" style="background:${col(n)}${extra}">${nivTxt(n)}</span>`;
     const obs=calibrado(d.probabilidad);
     document.getElementById('dlg-p').textContent=d.provincia;
@@ -955,7 +962,7 @@ function ficha(u){
       ${sube?`<div class="ajuste" role="note"><b>El modelo indica ${chip(d.nivel)}; sube a ${chip(d.nivel_final)} por:</b><ul>${d.motivos_alerta.map(m=>`<li>${esc(m)}</li>`).join('')||'<li>regla de corto plazo</li>'}</ul></div>`
         :d.motivos_alerta.length?`<div class="ajuste" role="note"><b>Además:</b><ul>${d.motivos_alerta.map(m=>`<li>${esc(m)}</li>`).join('')}</ul></div>`:''}
       <div><h3>¿Por qué?</h3><ul class="why">${(d.factores||[]).slice(0,3).map(x=>`<li>${esc(x)}</li>`).join('')||'<li>Sin factores destacados este mes.</li>'}</ul></div>
-      <div class="todo"><h3>${q?'Yanapaq willakuykuna':'¿Qué hacer?'}</h3>${draft}<ul>${D.recomendaciones[d.nivel_final][lang].map(x=>`<li>${esc(x)}</li>`).join('')}</ul></div>
+      <div class="todo"><h3>${tQueHacer()}</h3>${draft}<ul>${recs(d.nivel_final).map(x=>`<li>${esc(x)}</li>`).join('')}</ul></div>
       <h3 class="sep">Datos</h3>
       ${Array.isArray(d.centro)&&d.centro.length===2?`<div class="wv"><a class="btn ghost" href="${urlWorldview(d)}" target="_blank" rel="noopener noreferrer" aria-label="Ver ${esc(d.distrito)} en NASA Worldview, imagen del ${esc(ayerTxt)} (se abre en una pestaña nueva)"><span aria-hidden="true">🛰</span> Ver en NASA Worldview <span aria-hidden="true">↗</span></a><p class="small muted">Imagen satelital del ${esc(ayerTxt)}. ${AYUDA_NASA}</p></div>`:''}
       <div><h3>Historial: IA frente a lo ocurrido</h3>${spark(u)||'<p class="small muted">Sin historial suficiente.</p>'}</div>
@@ -1119,8 +1126,10 @@ document.getElementById('reglas').innerHTML=`<ol style="padding-left:18px;margin
   <p class="muted">Se emite alerta desde el nivel <b>${esc(D.nivel_alerta)}</b>. Las alertas son orientativas y deben validarse con autoridades y comunidades.</p>`;
 document.getElementById('fuentes').innerHTML=((D.fuentes&&D.fuentes.fuentes)||[]).concat(['Condiciones actuales y pronóstico: Open-Meteo (en vivo)','Mapa base: Esri World Imagery / OpenTopoMap','Imagen satelital del día (opcional): NASA GIBS / Worldview, VIIRS True Color (S-NPP; si no hay imagen, NOAA-20 o NOAA-21)']).map(f=>`<li>${esc(f)}</li>`).join('');
 function setLang(l){lang=l;store.set('lang',l);document.querySelectorAll('#seg-lang button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.l===l));
-  document.getElementById('leg-niveles').innerHTML=N.slice().reverse().map(n=>`<div class="lv"><i style="background:${col(n)}"></i>${n}${l==='qu'?` · ${D.nivel_qu[n]}`:''}</div>`).join('');render()}
+  document.getElementById('leg-niveles').innerHTML=N.slice().reverse().map(n=>`<div class="lv"><i style="background:${col(n)}"></i>${n}${nivTr(n)?` · ${nivTr(n)}`:''}</div>`).join('');render()}
 document.querySelectorAll('#seg-lang button').forEach(b=>b.onclick=()=>setLang(b.dataset.l));
+if(!['es','qu','en'].includes(lang)) lang='es';
+document.querySelectorAll('#seg-lang button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.l===lang));
 function setTheme(t){if(t)document.documentElement.dataset.theme=t;else delete document.documentElement.dataset.theme;store.set('theme',t);
   document.querySelectorAll('#seg-theme button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.t===t));capaDist.setStyle(estilo);if(vista==='reportes')dibujarGraficos()}
 document.querySelectorAll('#seg-theme button').forEach(b=>b.onclick=()=>setTheme(b.dataset.t));
@@ -1135,7 +1144,7 @@ function hojaImpresion(){
     .sort((a,b)=>N.indexOf(b.nivel_final)-N.indexOf(a.nivel_final)||b.probabilidad-a.probabilidad);
   const colorN=n=>(D.colores&&D.colores[n])||hex(n);
   const motivo=d=>(d.motivos_alerta&&d.motivos_alerta[0])||(d.factores&&d.factores[0])||'–';
-  const rec=d=>((D.recomendaciones[d.nivel_final]||{})[lang]||[])[0]||'–';
+  const rec=d=>recs(d.nivel_final)[0]||'–';
   const lugar=zona?`Provincia ${zona}`:'Región Puno';
   document.getElementById('hoja').innerHTML=`
     <header class="h-cab">
@@ -1146,10 +1155,10 @@ function hojaImpresion(){
       ${q&&!D.quechua_validado?'<p class="draft">Borrador en quechua · falta validación con hablantes locales</p>':''}
     </header>
     ${ds.length?`<table>
-      <thead><tr><th>Distrito</th><th>Provincia</th><th class="num">Prob.</th><th>Nivel final</th><th>Motivo principal</th><th>${q?'Yanapaq willakuy':'Recomendación'}</th></tr></thead>
+      <thead><tr><th>Distrito</th><th>Provincia</th><th class="num">Prob.</th><th>Nivel final</th><th>Motivo principal</th><th>${tRecom()}</th></tr></thead>
       <tfoot><tr><td colspan="6" class="h-esp"></td></tr></tfoot>
       <tbody>${ds.map(d=>`<tr><td><b>${esc(d.distrito)}</b></td><td>${esc(d.provincia)}</td><td class="num">${pct(d.probabilidad)}</td>
-        <td class="h-niv"><i style="--c:${colorN(d.nivel_final)}"></i>${esc(d.nivel_final)}${q&&D.nivel_qu?` · ${esc(D.nivel_qu[d.nivel_final]||'')}`:''}${d.nivel_final!==d.nivel?`<br><span style="font-weight:400">(modelo: ${esc(d.nivel)})</span>`:''}</td>
+        <td class="h-niv"><i style="--c:${colorN(d.nivel_final)}"></i>${esc(d.nivel_final)}${nivTr(d.nivel_final)?` · ${esc(nivTr(d.nivel_final))}`:''}${d.nivel_final!==d.nivel?`<br><span style="font-weight:400">(modelo: ${esc(d.nivel)})</span>`:''}</td>
         <td>${esc(motivo(d))}</td><td>${esc(rec(d))}</td></tr>`).join('')}</tbody></table>`
       :`<p class="h-vacio">No hay distritos con alerta en ${esc(lugar)} para ${esc(D.mes_pronostico)}.</p>`}
     <footer class="h-pie">${PIE_HOJA}</footer>`;

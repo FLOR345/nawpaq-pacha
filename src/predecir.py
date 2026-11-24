@@ -158,7 +158,7 @@ def predecir():
         "quechua_validado": A.QUECHUA_VALIDADO,
         "niveles": C.NIVELES, "colores": C.COLORES_NIVEL, "umbrales": C.UMBRALES_NIVEL,
         "nivel_alerta": C.NIVEL_ALERTA, "peligro_tiempo": C.PELIGRO_TIEMPO,
-        "nivel_qu": A.NIVEL_QU, "recomendaciones": A.RECOMENDACIONES,
+        "nivel_qu": A.NIVEL_QU, "nivel_en": A.NIVEL_EN, "recomendaciones": A.RECOMENDACIONES,
         "titulo": A.TITULO, "aviso": A.AVISO,
         "distritos": pron.to_dict("records"),
         "historial": {"etiquetas": etiquetas, "series": serie},

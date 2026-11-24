@@ -5,7 +5,7 @@
 [![Tests](https://github.com/FLOR345/nawpaq-pacha/actions/workflows/tests.yml/badge.svg)](https://github.com/FLOR345/nawpaq-pacha/actions/workflows/tests.yml)
 
 
-**Pronóstico a un mes del riesgo de incendios de vegetación y alertas en español y quechua para los Andes peruanos.**
+**Pronóstico a un mes del riesgo de incendios de vegetación y alertas en español, quechua e inglés para los Andes peruanos.**
 Zona piloto: **los 108 distritos de la región Puno, Perú**.
 
 *Read in English: [README.md](README.md)*
@@ -16,7 +16,7 @@ Zona piloto: **los 108 distritos de la región Puno, Perú**.
 
 1. descarga datos satelitales y climáticos públicos (NASA FIRMS, NASA POWER, MODIS, Copernicus DEM, OpenStreetMap);
 2. estima, para cada distrito, la probabilidad de al menos un foco de calor en el **mes siguiente**;
-3. convierte cada probabilidad en un nivel de riesgo, hasta tres razones en lenguaje sencillo y recomendaciones en **español y quechua**;
+3. convierte cada probabilidad en un nivel de riesgo, hasta tres razones en lenguaje sencillo y recomendaciones en **español, quechua (variedad collao, validado con hablantes locales) e inglés**;
 4. lo presenta en un **panel web estático** que se abre con doble clic, sin servidor.
 
 ```
