@@ -2,8 +2,11 @@
 
 ## [Sin publicar] v0.4 (en desarrollo)
 - VIIRS en el modelo por defecto (candidato: AUC 0.850 en la evaluación con fuentes NASA).
+- Panel rediseñado: móvil primero, Reportes con ECharts, capa NASA GIBS/Worldview, hoja A4.
+- Textos en quechua validados con cinco hablantes nativos (sin aviso de borrador) e inglés como
+  tercer idioma de las alertas.
 
-## v0.3.1 (2026-11-20)
+## v0.3.1 (2026-11-25) · DOI [10.5281/zenodo.24544185](https://doi.org/10.5281/zenodo.24544185)
 Revisión del artículo; el modelo y sus resultados no cambian.
 - Intervalos de confianza por bootstrap **por bloques de distrito** (antes, distrito-meses sueltos).
 - Importancia por permutación en los seis años de prueba y por grupos de variables correlacionadas.
