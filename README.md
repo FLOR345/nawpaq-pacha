@@ -1,6 +1,6 @@
 # ÑAWPAQ PACHA
 
-[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.23355818.svg)](https://doi.org/10.5281/zenodo.23355818)
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.24544185.svg)](https://doi.org/10.5281/zenodo.24544185)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Pronóstico mensual](https://github.com/FLOR345/nawpaq-pacha/actions/workflows/pronostico.yml/badge.svg)](https://github.com/FLOR345/nawpaq-pacha/actions/workflows/pronostico.yml)
 [![Tests](https://github.com/FLOR345/nawpaq-pacha/actions/workflows/tests.yml/badge.svg)](https://github.com/FLOR345/nawpaq-pacha/actions/workflows/tests.yml)

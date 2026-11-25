@@ -2,9 +2,9 @@ cff-version: 1.2.0
 message: "Si usas este software, por favor cítalo así. / If you use this software, please cite it as below."
 title: "ÑAWPAQ PACHA: open-source one-month-ahead vegetation fire risk forecasting and bilingual alerts for the Peruvian Andes"
 version: 0.3.1
-date-released: 2026-11-20
+date-released: 2026-11-25
 license: MIT
-doi: 10.5281/zenodo.23355818
+doi: 10.5281/zenodo.24544185
 repository-code: "https://github.com/FLOR345/nawpaq-pacha"
 authors:
   - family-names: "Yanarico Huanca"
