@@ -87,3 +87,38 @@ if __name__ == "__main__":
     C.SALIDAS.mkdir(exist_ok=True)
     (C.SALIDAS / "regla_corto_plazo.json").write_text(json.dumps(r, ensure_ascii=False, indent=2), encoding="utf-8")
     print(json.dumps(r, ensure_ascii=False, indent=2))
+
+
+def bootstrap_por_celda(ev=None, n=1000, semilla=42):
+    """Intervalos con bootstrap por celdas de NASA POWER (0,5° × 0,625°).
+
+    Los distritos de una misma celda comparten el clima diario, así que se
+    remuestrean juntos: complementa el bootstrap por bloques de distrito.
+    """
+    import json as _json
+    from shapely.geometry import shape
+    from sklearn.metrics import brier_score_loss, roc_auc_score
+
+    ev = pd.read_csv(C.SALIDAS / "predicciones_evaluacion.csv", dtype={"ubigeo": str}) if ev is None else ev
+    geo = _json.loads(C.GEOJSON_DISTRITOS.read_text(encoding="utf-8"))
+    celda = {}
+    for f in geo["features"]:
+        pt = shape(f["geometry"]).representative_point()
+        celda[str(f["properties"]["ubigeo"])] = f"{round((pt.y + 90) / 0.5)}_{round((pt.x + 180) / 0.625)}"
+    ev = ev.assign(celda=ev.ubigeo.map(celda))
+    celdas = ev.celda.unique()
+    pos = {c: np.where(ev.celda.values == c)[0] for c in celdas}
+    y, p, b = ev.hubo_incendio.values, ev.prob.values, ev.frec_hist_mes.values
+    rng = np.random.default_rng(semilla)
+    auc, dif, bss = [], [], []
+    for _ in range(n):
+        ii = np.concatenate([pos[c] for c in rng.choice(celdas, len(celdas), replace=True)])
+        if y[ii].min() == y[ii].max():
+            continue
+        a1, a0 = roc_auc_score(y[ii], p[ii]), roc_auc_score(y[ii], b[ii])
+        auc.append(a1); dif.append(a1 - a0)
+        bss.append(1 - brier_score_loss(y[ii], p[ii]) / brier_score_loss(y[ii], b[ii]))
+    q = lambda v: [round(float(x), 3) for x in np.percentile(v, [2.5, 97.5])]
+    return {"celdas": int(len(celdas)), "distritos": int(ev.ubigeo.nunique()), "repeticiones": len(auc),
+            "auc_ic95": q(auc), "diferencia_auc_ic95": q(dif), "brier_skill_ic95": q(bss),
+            "prop_diferencia_no_positiva": round(float(np.mean(np.array(dif) <= 0)), 4)}

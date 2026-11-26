@@ -158,6 +158,15 @@ def sensibilidad_etiquetas():
         print(f"[regla 48 h] solo modelo {r['solo_modelo']} · con regla {r['modelo_mas_regla_48h']}")
     except Exception as e:
         print(f"[regla 48 h] no evaluada: {e}")
+    # bootstrap por celdas climáticas de NASA POWER
+    try:
+        import analisis_revision as AR
+        r = AR.bootstrap_por_celda()
+        (C.SALIDAS / "bootstrap_celdas.json").write_text(json.dumps(r, ensure_ascii=False, indent=2),
+                                                         encoding="utf-8")
+        print(f"[bootstrap por celda] {r}")
+    except Exception as e:
+        print(f"[bootstrap por celda] no calculado: {e}")
 
 
 if __name__ == "__main__":
