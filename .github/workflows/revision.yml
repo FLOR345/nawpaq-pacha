@@ -1,0 +1,41 @@
+# Temporal: reevalúa el modelo con la imputación retrospectiva (rama revision-imputacion).
+name: Revisión (imputación)
+on:
+  push:
+    branches: [revision-imputacion]
+permissions:
+  contents: read
+jobs:
+  evaluar:
+    runs-on: ubuntu-latest
+    timeout-minutes: 240
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - run: pip install -r requirements.txt -r requirements-dev.txt
+      - run: python -m pytest -q
+      - uses: actions/cache/restore@v4
+        with:
+          path: data/raw/cache
+          key: datos-none
+          restore-keys: datos-
+      - name: Datos, evaluación y ablación
+        env:
+          FIRMS_MAP_KEY: ${{ secrets.FIRMS_MAP_KEY }}
+        run: python main.py --datos-reales --ablacion
+      - name: Resumen
+        run: |
+          cat data/raw/imputacion.json
+          python -c "import json;d=json.load(open('outputs/evaluacion_modelo.json'));print(json.dumps({k:d[k] for k in ['metricas_prueba','intervalos_95','intervalos_95_distrito_meses','brier_skill_score','por_anio','umbrales'] if k in d},indent=1))"
+          cat outputs/ablacion.json || true
+          cat outputs/regla_corto_plazo.json outputs/bootstrap_celdas.json outputs/sensibilidad_etiqueta.json || true
+      - uses: actions/upload-artifact@v4
+        with:
+          name: resultados
+          path: |
+            outputs/*.json
+            outputs/*.csv
+            data/raw/imputacion.json

@@ -41,3 +41,18 @@ def test_textos_alerta_en_tres_idiomas():
         assert len(textos["es"]) == len(textos["qu"]) == len(textos["en"]), nivel
     assert set(A.TITULO) == set(A.AVISO) == {"es", "qu", "en"}
     assert set(A.NIVEL_EN) == set(A.NIVEL_QU)
+
+
+def test_imputacion_no_usa_meses_posteriores(tmp_path):
+    import numpy as np
+    import pandas as pd
+    from descargar_datos_reales import imputar_retrospectiva
+    panel = pd.DataFrame({"ubigeo": ["a"] * 5 + ["b"] * 3,
+                          "anio": [2020] * 8, "mes": [1, 2, 3, 4, 5, 1, 2, 3],
+                          "ndvi": [np.nan, 0.2, np.nan, 0.9, np.nan, 0.5, np.nan, 0.1]})
+    out = imputar_retrospectiva(panel, ["ndvi"], tmp_path / "imp.json")
+    a = out[out.ubigeo == "a"].ndvi.tolist()
+    assert np.isnan(a[0])                 # sin pasado: queda vacío (no se rellena hacia atrás)
+    assert a[2] == 0.2                    # último valor anterior, no la media con 0.9
+    assert a[4] == 0.9
+    assert out[out.ubigeo == "b"].ndvi.tolist()[1] == 0.5   # no cruza distritos

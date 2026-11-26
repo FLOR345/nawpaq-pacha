@@ -30,6 +30,7 @@ import urllib.error
 import urllib.parse
 import urllib.request
 from concurrent.futures import ThreadPoolExecutor
+from pathlib import Path
 
 import numpy as np
 import pandas as pd
@@ -309,6 +310,28 @@ def focos_historicos(dists, hoy, clave):
     return focos, fin
 
 
+def imputar_retrospectiva(panel, columnas, archivo=None):
+    """Rellena meses sin dato con el último valor ANTERIOR del mismo distrito.
+
+    Nunca usa meses posteriores: una interpolación entre t-1 y t+1 filtraría
+    información del mes que se pronostica. Los huecos al inicio de la serie
+    quedan vacíos y esas filas se descartan al construir las variables.
+    Guarda cuántos valores se rellenaron en data/raw/imputacion.json.
+    """
+    panel = panel.sort_values(["ubigeo", "anio", "mes"]).copy()
+    resumen = {"filas": int(len(panel))}
+    for col in columnas:
+        faltan = int(panel[col].isna().sum())
+        panel[col] = panel.groupby("ubigeo")[col].ffill()
+        resumen[col] = {"faltantes": faltan, "rellenados": faltan - int(panel[col].isna().sum())}
+    archivo = archivo or (C.DATA_RAW / "imputacion.json")
+    try:
+        Path(archivo).write_text(json.dumps(resumen, indent=2), encoding="utf-8")
+    except OSError:
+        pass
+    return panel
+
+
 def focos_mensuales(focos, ubigeos, fin):
     m = (focos.assign(anio=focos.acq_date.dt.year, mes=focos.acq_date.dt.month)
          .groupby(["ubigeo", "anio", "mes"]).size().rename("focos_calor"))
@@ -397,9 +420,8 @@ def descargar():
     panel = panel.merge(clima, on=["ubigeo", "anio", "mes"], how="left")
     panel = panel.merge(ndvi, on=["ubigeo", "anio", "mes"], how="left")
     panel = panel.sort_values(["ubigeo", "anio", "mes"])
-    # Meses sueltos sin dato (nubes, fallas de descarga): interpolación por distrito
-    for col in ["temp_max", "precip_mm", "humedad_rel", "viento_kmh", "ndvi"]:
-        panel[col] = panel.groupby("ubigeo")[col].transform(lambda s: s.interpolate(limit_direction="both"))
+    # Meses sueltos sin dato (nubes, fallas de descarga): se rellenan solo con meses anteriores
+    panel = imputar_retrospectiva(panel, ["temp_max", "precip_mm", "humedad_rel", "viento_kmh", "ndvi"])
     panel = panel.round({"temp_max": 1, "precip_mm": 1, "humedad_rel": 1, "viento_kmh": 1, "ndvi": 3})
     panel[C.COLUMNAS_PANEL].to_csv(C.PANEL_MENSUAL, index=False)
 
